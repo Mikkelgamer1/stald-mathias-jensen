@@ -1,5 +1,5 @@
 {
- "opdateret": "2026-11-25T10:22:06.940Z",
+ "opdateret": "2026-11-25T12:05:47.963Z",
  "traener": {
   "foedt": 1995,
   "hjemmebane": "Spar Nord Arena Aalborg",
@@ -101,19 +101,6 @@
   }
  ],
  "heste": [
-  {
-   "id": 643041,
-   "navn": "Fit For Fight",
-   "alder": 9,
-   "koen": "Hingst",
-   "foedt": "2017-05-24",
-   "far": "S J's Caviar (US)",
-   "mor": "Golden Drew",
-   "starter": 61,
-   "placeringer": "10-6-6",
-   "praemier": 183307,
-   "rekord": "14,8m 16,1l 12,6ak 14,6am 15,1al"
-  },
   {
    "id": 651770,
    "navn": "Kasino",
