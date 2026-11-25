@@ -1,12 +1,14 @@
-# Stald Magnus M. Nielsen – hjemmeside
+# Mathias Jensen – hjemmeside
 
-Statisk site (HTML, CSS, lidt JavaScript). Ingen afhængigheder, ingen database og ingen cookies – Facebook og Instagram vises som links, ikke som indlejring. Kræver kun Node 20+ for at bygge.
+Hjemmeside for travkusk og træner Mathias Jensen (A1-licens, hjemmebane Spar Nord Arena Aalborg, stald i Arden).
+
+Statisk site (HTML, CSS, lidt JavaScript). Ingen afhængigheder, ingen database og ingen cookies. Kræver kun Node 20+ for at bygge.
 
 ```bash
-node build.mjs --serve
+node build.mjs --serve --port=4174
 ```
 
-Åbn derefter http://localhost:4173. Det færdige site ligger i `dist/`.
+Åbn derefter http://localhost:4174. Det færdige site ligger i `dist/`.
 
 | Kommando | Gør |
 | --- | --- |
@@ -15,44 +17,37 @@ node build.mjs --serve
 | `node build.mjs --serve` | Bygger og viser sitet lokalt |
 | `node build.mjs --test` | Selvtjek af formatering og datalogik |
 
+Ved hver bygning skriver `build.mjs`, hvad der mangler før lancering (fx e-mail, CVR og fotos).
+
 ## Sådan holder sitet sig selv opdateret
 
-Heste, resultater, kommende starter og statistik kommer fra Dansk Hestevæddeløbs sportsdata – de samme data, som travinfo.dk viser. `--hent` gemmer dem i `data/travinfo.json`, og siderne bygges ud fra den fil.
+Heste, resultater, kommende starter og statistik kommer fra Dansk Hestevæddeløbs sportsdata – de samme data, som travinfo.dk viser. `--hent` gemmer dem i `data/travinfo.json`, og siderne bygges ud fra den fil. Både løb som træner og som kusk hentes, fordi Mathias kører langt flest løb for andre trænere.
 
-- **Heste i træning** følger den officielle træningsliste. Kommer en hest til eller rejser, følger siden selv med.
-- **Resultater, statistik, søjlediagrammer, formkurve og Danmarkskortet** tegnes ud fra de samme data ved hver kørsel. Fejler hentningen, bygges der videre med de gemte data, og datoen for seneste opdatering står på siden.
-- Magnus skal ikke gøre noget.
-
-`.github/workflows/opdater.yml` kører `--hent` hver morgen og ved hvert push til `main` og udgiver på GitHub Pages. Sitet ligger foreløbig på https://mikkelgamer1.github.io/stald-magnus-m-nielsen/, hvor `robots.txt` holder det ude af søgemaskinerne. Når domænet er på plads, sættes repo-variablen `SITE_URL` til den rigtige adresse – så åbnes der for søgemaskinerne af sig selv.
-
-Andre muligheder: Netlify eller Cloudflare Pages (build-kommando `node build.mjs --hent`, mappe `dist`, plus et dagligt build-hook), eller upload `dist/` til et almindeligt webhotel. På et webhotel uden automatik står tallene stille, indtil der bygges og uploades igen.
+`.github/workflows/opdater.yml` kører `--hent` hver morgen og ved hvert push til `main` og udgiver på GitHub Pages: https://mikkelgamer1.github.io/stald-mathias-jensen/. Her holder `robots.txt` sitet ude af søgemaskinerne. Når domænet er på plads, sættes repo-variablen `SITE_URL` til den rigtige adresse – så åbnes der for søgemaskinerne af sig selv.
 
 ## Ret indhold
 
 | Hvad | Hvor |
 | --- | --- |
-| Telefon, mail, adresse, links, domæne | `SITE` øverst i `templates.mjs` |
-| Tekster | `templates.mjs` (én funktion pr. side) |
-| Billeder af enkelte heste | `HESTEFOTO` i `templates.mjs` (hest-id → filnavn) |
-| Banernes placering på kortet | `BANE_POS` i `templates.mjs` |
-| Farver, typografi, layout | `assets/css/site.css` |
-| Billeder | `assets/img/` – staldens egne fotos fra Facebook, uden beskæring, filtre eller AI. Hvert foto ligger i flere bredder (`navn-bredde.jpg`); den største er originalfilen uændret, de andre er kun skaleret ned. Udsnittet på siden styres med CSS |
+| Telefon, mail, adresse, CVR, domæne | `SITE` øverst i `templates.mjs` |
+| Tekster og milepæle | `templates.mjs` (én funktion pr. side, `MILEPAELE`) |
+| Heste, der stadig står på træningslisten, men ikke skal vises | `UDELAD` i `templates.mjs` |
+| Farver, typografi, layout | `assets/css/site.css` (grøn og sort som løbsdragten) |
 
-Tjeklisten før lancering og listen over midlertidige billeder ligger i `LANCERING.md`, som kun findes lokalt.
+## Billeder
+
+Kun rigtige, uredigerede fotos – ingen AI. Mathias' Facebook bruges ikke.
+
+- **Endelige fotos** lægges i `originaler/` (kun lokalt) og skaleres ned til `assets/img/` (`navn-bredde.jpg`, den største er originalfilen uændret). De skrives ind i `BILLEDER` i `templates.mjs`.
+- **Udkast:** `assets/udkast/` indeholder fotos fra banernes og travmediernes sider (Ole Hindby, Burt Seeger, Hesselborg Foto). De bruges kun lokalt til at se layoutet. Mappen står i `.gitignore` og `.vercelignore`, så online vises pladsholdere, indtil fotograferne har givet lov, og originalerne er lagt ind. Fotografens navn skal stå ved billedet.
 
 ## Kilder til fakta
 
 | Oplysning | Kilde |
 | --- | --- |
-| Fødselsår, licens (A1), hjemmebane, farver, statistik, træningsliste, resultater | Dansk Hestevæddeløb / travinfo.dk, licens 517710 |
-| Telefon, mail | skive-trav.dk/om-os/traenere og staldens Facebook-side |
-| Adresse (Flyvej 16, 7800 Skive), ydelser (tilkøring af ungheste, træning af løbsheste) | Staldens Facebook-side |
-| Sparring ved hestekøb og auktioner | Staldens Facebook-opslag 11. august 2026 |
-| DM for jockeyer 2021, nr. 2 i 2024, travfamilie, Sigter mod stjernerne, Jockeyserien, ansat hos Morten Friis | travet.dk 18. februar 2025 |
-| Summer Meeting Talents to år i træk | travet.dk 27. juni 2024 |
-| Nominering til Årets Komet | danskhv.dk 10. januar 2025 |
-| "En af landets yngste trænere" | travet.dk 16. maj 2026 |
-| Karat C N som Kriteriumsvinder og debut for stalden | trav24.dk 1. september 2026, travservice.dk 20. september 2026 |
-| Firmanavn og CVR i bunden (Travtræner Magnus M. Nielsen, CVR 46096959) | CVR-registret, datacvr.virk.dk/enhed/virksomhed/46096959 (tjekket 16.11.2026) |
-| Skive Trav: 1948, flytning 1966, lysanlæg 2019–20 | skive-trav.dk/om-os |
+| Fødselsår, licens (A1), hjemmebane, farver, statistik, træningsliste, resultater | Dansk Hestevæddeløb / travinfo.dk, licens 505281 |
+| Telefon og adresse | Dansk Hestevæddeløbs licensregister (tjekket 25.11.2026), godkendt af Mathias |
+| A-licens og egen stald i 2026 | Mathias (via Mikkel) |
+| Amatørchampion 2016, EM 2017, Årets Komet 2021, DM for amatørkuske 2023, jockey hos Kaj Jensen, Fit For Fight død | travservice.dk (2017–2026) |
+| NM for amatørkuske 2024 (bedste dansker) | travservice.dk og danskhv.dk april 2024 |
 | Danmarks omrids på kortet (`data/danmark.json`) | Natural Earth 1:50m, public domain. Bornholm er udeladt, og banernes placering er omtrentlig |

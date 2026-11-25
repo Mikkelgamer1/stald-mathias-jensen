@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sider, SITE, tid, bedsteRekord, plac } from './templates.mjs';
+import { sider, SITE, MANGLER, tid, bedsteRekord, plac } from './templates.mjs';
 
 const ROD = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(ROD, 'dist');
@@ -75,6 +75,8 @@ async function hentTravinfo(gammel) {
   const resultater = await get(`/licenseholders/trainers/${L}/results`);
   const traeningsliste = await get(`/licenseholders/trainers/${L}/horses`);
   const kommende = await get(`/licenseholders/trainers/${L}/comingstarts`).catch(() => []);
+  const kuskResultater = await get(`/licenseholders/drivers/${L}/results`).catch(() => []);
+  const kuskKommende = await get(`/licenseholders/drivers/${L}/comingstarts`).catch(() => []);
   assert(Array.isArray(traeningsliste) && Array.isArray(resultater) && traenerStat.statistics?.length, 'uventet svar fra API');
 
   const kendte = new Map((gammel?.heste ?? []).map((h) => [h.id, h]));
@@ -103,6 +105,9 @@ async function hentTravinfo(gammel) {
     heste,
     resultater: flet(resultater.filter(erStart).map(tilResultat), gammel?.resultater),
     kommende: kommende.map((k) => ({ dato: k.raceInformation.date, bane: k.track.code, loeb: k.raceInformation.raceNumber, hestId: k.horse.id, hest: paentNavn(k.horse.name), kusk: kuskNavn(k.driver?.name) })),
+    // Mathias kører langt flere løb som kusk for andre trænere end med egne heste – de løb vises også.
+    kuskResultater: flet(kuskResultater.filter(erStart).map(tilResultat), gammel?.kuskResultater),
+    kuskKommende: kuskKommende.map((k) => ({ dato: k.raceInformation.date, bane: k.track.code, loeb: k.raceInformation.raceNumber, hestId: k.horse.id, hest: paentNavn(k.horse.name), traener: kuskNavn(k.trainer?.name) })),
   };
 }
 
@@ -131,7 +136,8 @@ ${offentlige.map((s) => `  <url><loc>${SITE.url}/${s.url}</loc><lastmod>${data.o
   // På en midlertidig github.io- eller vercel.app-adresse holdes sitet ude af søgemaskinerne; med eget domæne åbnes der.
   const midlertidig = /\.(github\.io|vercel\.app)$/.test(new URL(SITE.url).hostname);
   await writeFile(path.join(DIST, 'robots.txt'), midlertidig ? 'User-agent: *\nDisallow: /\n' : `User-agent: *\nAllow: /\n\nSitemap: ${SITE.url}/sitemap.xml\n`);
-  console.log(`Bygget ${alle.length} sider → dist/  (data fra ${data.opdateret.slice(0, 10)}: ${data.heste.length} heste, ${data.resultater.length} resultater)`);
+  console.log(`Bygget ${alle.length} sider → dist/  (data fra ${data.opdateret.slice(0, 10)}: ${data.heste.length} heste, ${data.resultater.length} resultater som træner, ${data.kuskResultater?.length ?? 0} som kusk)`);
+  if (MANGLER.length) console.warn(`Mangler før lancering: ${MANGLER.join(', ')}`);
 }
 
 // ---------- lokal forhåndsvisning ----------
@@ -198,5 +204,5 @@ else {
     }
   }
   await byg();
-  if (flag('serve')) serve();
+  if (flag('serve')) serve(Number(process.argv.find((x) => x.startsWith('--port='))?.slice(7)) || undefined);
 }

@@ -1,76 +1,79 @@
 // Al HTML til sitet. Tekster rettes her; tal, heste og resultater kommer fra data/travinfo.json.
+import { existsSync } from 'node:fs';
 
 export const SITE = {
-  // ← Bekræft domænet før lancering (kan også sættes med miljøvariablen SITE_URL). På Vercel bruges projektets adresse.
-  url: (process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL && 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL) || 'https://www.staldmagnusmnielsen.dk').replace(/\/$/, ''),
-  navn: 'Stald Magnus M. Nielsen',
+  // ← Domænet er ikke valgt endnu; indtil da GitHub Pages (kan også sættes med miljøvariablen SITE_URL). På Vercel bruges projektets adresse.
+  url: (process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL && 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL) || 'https://mikkelgamer1.github.io/stald-mathias-jensen').replace(/\/$/, ''),
+  navn: 'Mathias Jensen', // ← staldnavn, hvis Mathias bruger et
+  fornavn: 'Mathias',
   licens: 505281,
-  telefon: '+45 51 89 80 33',
-  email: 'teammagnus@outlook.dk',
-  firma: 'Travtræner Magnus M. Nielsen', // navn og CVR fra CVR-registret (datacvr.virk.dk, tjekket 16.11.2026) – skal stå på siden efter e-handelsloven § 7
-  cvr: '46096959',
-  gade: 'Flyvej 16',
-  postnr: '7800',
-  by: 'Skive',
-  facebook: 'https://www.facebook.com/StaldMagnusMNielsen/',
-  instagram: 'https://www.instagram.com/stald_magnusmnielsen',
+  // Telefon og adresse fra Dansk Hestevæddeløbs licensregister (tjekket 25.11.2026); Mathias har sagt ok til, at de står på siden.
+  telefon: '+45 24 21 11 18',
+  email: '',  // ← mangler
+  firma: '',  // ← mangler: navn og CVR skal stå på siden efter e-handelsloven § 7, hvis han driver virksomhed
+  cvr: '',    // ← mangler
+  gade: 'Rold Bavnehøjvej 2',
+  postnr: '9510',
+  by: 'Arden',
   travinfo: 'https://travinfo.dk/licenseholder-tabs/505281',
-  krafft: 'https://www.kraffthestefoder.dk/',
-  skiveTrav: 'https://www.skive-trav.dk/',
-  kort: 'https://www.google.com/maps/search/?api=1&query=Flyvej+16%2C+7800+Skive',
+  kort: 'https://www.google.com/maps/search/?api=1&query=Rold+Bavneh%C3%B8jvej+2%2C+9510+Arden',
 };
+// Felter, der mangler, før siden kan gå live – build.mjs skriver dem ud ved hver bygning.
+export const MANGLER = [!SITE.email && 'e-mail', !SITE.cvr && 'CVR og firmanavn', 'fotos', 'domæne'].filter(Boolean);
 
 // Billeder af enkelte heste (hest-id fra Travinfo → [filnavn i assets/img, evt. fokuspunkt]).
 // Forlader hesten træningslisten, forsvinder kortet af sig selv.
-const HESTEFOTO = {
-  651228: ['hest-karat-c-n'],
-  658484: ['hest-cala-karamell'],
-  646886: ['hest-hernando'],
-  657408: ['aften'],
-  659474: ['hest-giulia-di-masi'],
-};
+const HESTEFOTO = {};
 
-// Alle fotos er staldens egne billeder fra Facebook, uden beskæring, filtre eller AI.
-// Originalerne ligger i originaler/ (kun lokalt). Den største bredde er originalfilen uændret;
+// Heste, der stadig står på den officielle træningsliste, men ikke skal vises.
+const UDELAD = new Set([
+  643041, // Fit For Fight er død (Mathias til travservice.dk 24.11.2026)
+]);
+
+// Kun rigtige, uredigerede fotos – ingen AI. Mathias' Facebook bruges ikke; fotos skal komme fra Mathias selv.
+// Originalerne lægges i originaler/ (kun lokalt). Den største bredde er originalfilen uændret;
 // de mindre er kun skaleret ned. Udsnittet på siden vælges med CSS (object-position), ikke i filen.
 // navn: [forhold bredde/højde, ...bredder]
-const BILLEDER = {
-  'hero': [1.353, 800, 1200, 1461],
-  'magnus': [1.413, 600, 1200],
-  'magnus-kjeld': [2.127, 800, 1200, 1570], // foto: Kjeld Mikkelsen (brugt med tilladelse)
-  'loeb-aalborg': [1.861, 800, 1200, 1500],
-  'fold-fuks': [1.333, 600, 900, 1200, 1800, 2400, 3072], // fuksen alene på folden, staldens Facebook
-  'stald-solnedgang': [1.495, 600, 900, 1200, 1440], // mørk hest i blåt dækken ved stalden i solnedgang, staldens Facebook 20.10.2025 // Magnus bag nr. 3 i Aalborg, staldens Facebook 24.9.2026
-  'loeb-nr3-aarhus': [1.399, 800, 1200, 1600, 2000], // Magnus bag nr. 3 på Jydsk Væddeløbsbane, sendt af Mikkel
-  'hest-karat-c-n': [0.75, 560, 900, 3072],
-  'hest-cala-karamell': [0.751, 560, 900, 3077],
-  'hest-giulia-di-masi': [0.751, 560, 900, 3077],
-  'hest-hernando': [0.75, 560, 900, 1536],
-  'aften': [0.751, 560, 900, 1200, 1600, 2400, 3077],
-  'stald-gang': [0.751, 600, 900, 1400, 3077],
-  'stald-vask': [0.751, 500, 800, 1200, 3077],
-  'stald-fold': [0.75, 500, 800, 1200, 3072],
-  'stald-hest': [0.75, 600, 1000, 1400, 3072],
-  'stald-detalje': [0.75, 500, 900, 3072],
-  'stald-sele': [0.828, 500, 800, 1200, 3390],
-  'stald-lys': [0.75, 500, 800, 1200, 3072],
-  'stald-moerk': [0.751, 500, 800, 1200, 3077],
-  'stald-ro': [0.751, 320, 600, 800, 1200, 3077],
-  'stald-bandager': [0.75, 640, 1000, 1536],
-  'stald-blik': [0.75, 640, 1000, 3072],
-  'flise-1': [0.75, 320, 600, 1536],
-  'flise-2': [0.751, 320, 600, 3077],
-  'hoved-stalden': [0.751, 600, 900, 1400, 3077],
-  'hoved-heste': [1.333, 600, 900, 1200, 1800, 2400, 3072],
-  'hoved-kontakt': [0.75, 600, 900, 1400, 3072],
+const BILLEDER = {};
+// Fotos, siden mangler: navn → [forhold, hvad fotoet skal vise]. Indtil fotoet er lagt ind i BILLEDER,
+// vises en pladsholder med teksten – listen kan sendes direkte til Mathias.
+const OENSKER = {
+  'hero': [1.5, 'Mathias i sulkyen i grøn/sort dragt, gerne i fart (liggende)'],
+  'mathias': [0.8, 'Portræt af Mathias – i dragten eller ved en hest'],
+  'portraet': [0.8, 'Nærbillede af Mathias'],
+  'resultater': [1.5, 'Fra et løb (liggende)'],
+  'loeb': [1.5, 'Fra et løb, fx Aalborg (liggende)'],
+  'stald': [0.75, 'Stalden i Arden eller en af hestene'],
+  'heste': [0.75, 'Kasino eller en anden hest fra stalden'],
+  'kontakt': [0.75, 'Stemningsbillede fra stalden eller banen'],
+  'baand': [1.5, 'En hest i træning eller på folden (liggende)'],
 };
+// Udkast: fotos af Mathias fundet via Google på banernes og travmediernes egne sider – hentet uredigeret, som de ligger der.
+// Ophavsretten ligger hos fotograferne. Mappen assets/udkast/ står i .gitignore og .vercelignore, så filerne kommer
+// aldrig på nettet (der vises pladsholdere i stedet), før fotografen har givet lov og fotoet er lagt ind i BILLEDER.
+const UDKAST_FOTOS = {
+  karlo: ['karlo-ole-hindby.jpg', 'Ole Hindby', 3309, 2311, 'Karlo, Jydsk Væddeløbsbane 24/7-2026 (jvb-aarhus.dk)'],
+  lulu: ['lulu-ole-hindby.jpg', 'Ole Hindby', 3829, 2538, 'Lulu, Jydsk Væddeløbsbane 12/7-2025 (jvb-aarhus.dk)'],
+  pokaler: ['pokaler-burt-seeger.jpg', 'Burt Seeger', 800, 528, 'Amatør Grand Prix, Charlottenlund 2022 (travet.dk)'],
+  kasino: ['kasino-travet.jpg', 'Ole Hindby eller KM Foto', 800, 532, 'Kasino, Odense 4/7-2025 (travet.dk) – kusk er Frederik Kragh Olsen, så den bruges ikke'],
+  smil: ['smil-2021-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Mathias med vinderbuket, Aalborg 2021 (travet.dk)'],
+  buket: ['buket-2021-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Mathias med vinderbuket, Aalborg 2021 (travet.dk)'],
+  nr9: ['nr9-2023-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Mathias i løb, Aalborg december 2023 (travet.dk)'],
+  liga: ['liga-2026-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Liga, Aalborg 9/10-2026 (travet.dk)'],
+  fitforfight: ['fitforfight-2024-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Fit For Fight, Aalborg 2/7-2024 (travet.dk) – bruges ikke, hesten er død'],
+  kasinoSigter: ['kasino-sigter-ole-hindby.jpg', 'Ole Hindby', 800, 532, 'Kasino efter sejren i Sigter mod stjernerne, Aarhus 28/6-2025 (travet.dk) – kusk er Frederik Kragh Olsen, så den bruges ikke'],
+};
+// Hvilket foto der vises hvor (felt → foto)
+const UDKAST_FELT = { hero: 'karlo', mathias: 'pokaler', portraet: 'smil', loeb: 'liga', resultater: 'lulu', heste: 'karlo', baand: 'lulu', kontakt: 'buket', stald: 'nr9' };
+const UDKAST = Object.fromEntries(Object.entries(UDKAST_FELT).map(([felt, foto]) => [felt, UDKAST_FOTOS[foto]]).filter(([, u]) => existsSync(new URL(`./assets/udkast/${u[0]}`, import.meta.url))));
 // Fokuspunkt for fotos, hvor motivet ikke står i midten (bruges, når feltet har en anden form end fotoet).
-const FOKUS = { magnus: '66% 40%' };
+const FOKUS = {};
 
 const BANER = { Sk: 'Skive', 'Ål': 'Aalborg', 'År': 'Aarhus', Od: 'Odense', Ch: 'Charlottenlund', Bi: 'Billund', Bh: 'Bornholm', Ny: 'Nykøbing F.', Bs: 'Skovbo', Kl: 'Klampenborg' };
 // Banernes omtrentlige placering [længdegrad, breddegrad] til det skematiske Danmarkskort (Bornholm ligger uden for kortet).
-const BANE_POS = { Sk: [9.06, 56.56], 'Ål': [9.87, 57.05], 'År': [10.2, 56.14], Od: [10.36, 55.4], Ch: [12.58, 55.75], Bi: [9.12, 55.73], Ny: [11.87, 54.77], Bs: [12.03, 55.46], Kl: [12.59, 55.77] };
-const NAV = [['om-magnus/', 'Om Magnus'], ['stalden/', 'Stalden'], ['heste/', 'Heste'], ['resultater/', 'Resultater']];
+const BANE_POS = { Sk: [9.06, 56.56], 'Ål': [9.87, 57.05], 'År': [10.2, 56.14], Od: [10.36, 55.4], Ch: [12.58, 55.75], Bi: [9.12, 55.73], Ny: [11.87, 54.77], Bs: [12.03, 55.46], Kl: [12.59, 55.77], stald: [9.86, 56.77] };
+const HJEMME = 'Ål'; // hjemmebanen: Spar Nord Arena Aalborg
+const NAV = [['om-mathias/', 'Om Mathias'], ['heste/', 'Heste'], ['resultater/', 'Resultater']];
 
 // ---------- små hjælpere ----------
 
@@ -109,9 +112,17 @@ const ekstern = (href, tekst, cls = 'laes') => `<a class="${cls}" href="${href}"
 const knap = (href, tekst, cls = '') => `<a class="knap ${cls}" href="${R}${href}">${tekst} ${pil}</a>`;
 const laes = (href, tekst) => `<a class="laes" href="${R}${href}">${tekst} ${pil}</a>`;
 
+const forhold = (navn) => BILLEDER[navn]?.[0] ?? (UDKAST[navn] ? UDKAST[navn][2] / UDKAST[navn][3] : OENSKER[navn]?.[0] ?? 1.5);
 const billedsti = (navn, w) => `${R}assets/img/${navn}-${w}.jpg`;
-const srcset = (navn) => BILLEDER[navn].slice(1).map((w) => `${billedsti(navn, w)} ${w}w`).join(', ');
+const srcset = (navn) => (BILLEDER[navn] ?? [1]).slice(1).map((w) => `${billedsti(navn, w)} ${w}w`).join(', ');
 const img = (navn, alt, { sizes = '100vw', lazy = true, pos = FOKUS[navn] } = {}) => {
+  if (!BILLEDER[navn] && UDKAST[navn]) { // lokalt udkast-foto (kun på egen maskine)
+    return `<img src="${R}assets/udkast/${UDKAST[navn][0]}" width="${UDKAST[navn][2]}" height="${UDKAST[navn][3]}" alt="${esc(alt)}"${pos ? ` style="object-position:${pos}"` : ''}${lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"'}>`;
+  }
+  if (!BILLEDER[navn]) { // fotoet er ikke kommet endnu: pladsholder med en beskrivelse af det ønskede foto
+    const [forhold, oenske] = OENSKER[navn] ?? [1, alt];
+    return `<span class="mangler" style="--r:${forhold}" role="img" aria-label="Pladsholder: ${esc(oenske)}"><span class="mangler__tekst" aria-hidden="true"><b>Foto følger</b>${esc(oenske)}</span></span>`;
+  }
   const [forhold, ...bredder] = BILLEDER[navn];
   const max = bredder.at(-1);
   return `<img src="${billedsti(navn, bredder[Math.min(1, bredder.length - 1)])}" srcset="${srcset(navn)}" sizes="${sizes}" width="${max}" height="${Math.round(max / forhold)}" alt="${esc(alt)}"${pos ? ` style="object-position:${pos}"` : ''}${lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"'}>`;
@@ -121,24 +132,36 @@ const figur = (navn, alt, tekst, opt) => `<figure class="figur"><div class="bill
 // ---------- afledte tal ----------
 
 function afled(data, idag) {
-  const heste = [...data.heste].sort((a, b) => b.praemier - a.praemier || a.navn.localeCompare(b.navn, 'da'));
+  const heste = data.heste.filter((h) => !UDELAD.has(h.id)).sort((a, b) => b.praemier - a.praemier || a.navn.localeCompare(b.navn, 'da'));
   const navne = new Map(heste.map((h) => [h.id, h.navn]));
   const medNavn = (r) => ({ ...r, hest: navne.get(r.hestId) ?? r.hest });
   const saeson = data.traenerStatistik.find((s) => s.sejre > 0) ?? data.traenerStatistik.find((s) => s.starter > 0) ?? data.traenerStatistik[0];
   const kusk = data.kuskStatistik.find((s) => s.aar === saeson.aar) ?? data.kuskStatistik[0];
-  const iAar = data.resultater.filter((r) => r.dato.startsWith(String(saeson.aar)));
+  // Som kusk: den seneste sæson med starter (Mathias kører mest for andre trænere).
+  const kuskSaeson = data.kuskStatistik.find((s) => s.starter > 0) ?? data.kuskStatistik[0];
+  const kuskIAar = (data.kuskResultater ?? []).filter((r) => r.dato.startsWith(String(kuskSaeson.aar)));
   const antalPrBane = {};
-  for (const r of iAar) antalPrBane[r.bane] = (antalPrBane[r.bane] ?? 0) + 1;
+  for (const r of kuskIAar) antalPrBane[r.bane] = (antalPrBane[r.bane] ?? 0) + 1;
+  const banetal = Object.entries(antalPrBane).sort((a, b) => b[1] - a[1]).map(([kode, antal]) => ({ kode, navn: bane(kode), antal }));
+  const sum = (liste, felt) => liste.reduce((t, s) => t + s[felt], 0);
+  const kuskAar = data.kuskStatistik.filter((s) => s.starter > 0);
+  const traenerAar = data.traenerStatistik.filter((s) => s.starter > 0);
   return {
     heste,
     saeson,
     kusk,
+    kuskSaeson,
     opdateret: langDato(data.opdateret),
     seneste: data.resultater.slice(0, 10).map(medNavn),
     kommende: data.kommende.filter((k) => k.dato >= idag).map(medNavn),
-    banerIAar: Object.entries(antalPrBane).sort((a, b) => b[1] - a[1]).map(([kode]) => bane(kode)),
-    banetal: Object.entries(antalPrBane).sort((a, b) => b[1] - a[1]).map(([kode, antal]) => ({ kode, navn: bane(kode), antal })),
-    hjemmestarter: antalPrBane.Sk ?? 0,
+    kuskSeneste: (data.kuskResultater ?? []).slice(0, 10),
+    kuskKommende: (data.kuskKommende ?? []).filter((k) => k.dato >= idag),
+    banerIAar: banetal.map((b) => b.navn),
+    banetal,
+    hjemmestarter: antalPrBane[HJEMME] ?? 0,
+    kuskIalt: { aar: kuskAar.length, starter: sum(kuskAar, 'starter'), sejre: sum(kuskAar, 'sejre') },
+    traenerAar: traenerAar.length,
+    bedsteTraenerAar: [...traenerAar].sort((a, b) => b.sejre - a.sejre || b.praemier - a.praemier)[0],
     ungheste: heste.filter((h) => h.alder <= 2),
     aldre: [Math.min(...heste.map((h) => h.alder)), Math.max(...heste.map((h) => h.alder))],
     fotoheste: heste.filter((h) => HESTEFOTO[h.id]),
@@ -147,7 +170,8 @@ function afled(data, idag) {
 
 // ---------- fælles dele ----------
 
-const logo = (cls = '', alt = '') => `<img class="${cls}" src="${R}assets/img/logo-hvid.png" width="535" height="428" alt="${alt}">`;
+// Intet logo endnu: navnet sat med skrift som ordmærke. ← Skift til et logo, hvis Mathias har et.
+const logo = (cls = '') => `<span class="ordmaerke ${cls}">Mathias <em>Jensen</em></span>`;
 
 const top = (sti) => `
 <header class="top">
@@ -158,7 +182,7 @@ const top = (sti) => `
     <a class="top__logo" href="${R || './'}" aria-label="${SITE.navn} – til forsiden">${logo()}</a>
     <div class="top__cta">
       <a class="top__tlf" href="tel:${tlfLink}">${SITE.telefon}</a>
-      <a class="knap knap--lys knap--lille" href="${R}kontakt/"${sti.startsWith('kontakt/') ? ' aria-current="page"' : ''}>Kontakt Magnus</a>
+      <a class="knap knap--lys knap--lille" href="${R}kontakt/"${sti.startsWith('kontakt/') ? ' aria-current="page"' : ''}>Kontakt Mathias</a>
     </div>
     <button class="burger" type="button" aria-haspopup="dialog" aria-controls="menu" commandfor="menu" command="show-modal"><span>Menu</span><i aria-hidden="true"></i></button>
   </div>
@@ -174,9 +198,9 @@ const top = (sti) => `
     </ul>
   </nav>
   <div class="menu__bund wrap">
-    <a href="tel:${tlfLink}">${SITE.telefon}</a>
-    <a href="mailto:${SITE.email}">${SITE.email}</a>
-    <p><a href="${SITE.facebook}" target="_blank" rel="noopener">Facebook</a> · <a href="${SITE.instagram}" target="_blank" rel="noopener">Instagram</a></p>
+    <a href="tel:${tlfLink}">${SITE.telefon}</a>${SITE.email ? `
+    <a href="mailto:${SITE.email}">${SITE.email}</a>` : ''}
+    <p><a href="${SITE.travinfo}" target="_blank" rel="noopener">Travinfo</a></p>
   </div>
 </dialog>`;
 
@@ -184,10 +208,10 @@ const kontaktbaand = () => `
 <section class="slut">
   <div class="wrap slut__inner">
     <p class="oje" data-vis>Kontakt</p>
-    <h2 data-vis style="--i:1">Skal din hest <em>i træning?</em></h2>
-    <p class="slut__tekst" data-vis style="--i:2">Ring eller skriv til Magnus – så tager I en snak om hesten og mulighederne.</p>
+    <h2 data-vis style="--i:1">Skal din hest <em>til start?</em></h2>
+    <p class="slut__tekst" data-vis style="--i:2">Ring eller skriv til Mathias – om en kusk til næste løb eller om træning.</p>
     <div class="slut__valg" data-vis style="--i:3">
-      ${knap('kontakt/', 'Kontakt Magnus', 'knap--lys')}
+      ${knap('kontakt/', 'Kontakt Mathias', 'knap--lys')}
       <a class="slut__tlf" href="tel:${tlfLink}">${SITE.telefon}</a>
     </div>
   </div>
@@ -197,12 +221,8 @@ const bund = (o) => `
 <footer class="bund">
   <div class="wrap bund__gitter">
     <div class="bund__brand">
-      ${logo('bund__logo', SITE.navn)}
-      <p>Professionel travtræning i Skive. Tilkøring af ungheste og træning af løbsheste.</p>
-      <a class="bund__partner" href="${SITE.krafft}" target="_blank" rel="noopener">
-        <span>Samarbejdspartner</span>
-        <img src="${R}assets/img/krafft.png" width="814" height="619" alt="KRAFFT" loading="lazy">${nyFane}
-      </a>
+      ${logo('bund__logo')}
+      <p>Professionel travkusk og træner med A1-licens. Hjemmebane: Spar Nord Arena Aalborg.</p>
     </div>
     <nav aria-label="Sider">
       <h2>Sider</h2>
@@ -213,49 +233,47 @@ const bund = (o) => `
     <div>
       <h2>Kontakt</h2>
       <ul>
-        <li><a href="tel:${tlfLink}">${SITE.telefon}</a></li>
-        <li><a href="mailto:${SITE.email}">${SITE.email}</a></li>
+        <li><a href="tel:${tlfLink}">${SITE.telefon}</a></li>${SITE.email ? `
+        <li><a href="mailto:${SITE.email}">${SITE.email}</a></li>` : ''}
         <li><address>${SITE.gade}<br>${SITE.postnr} ${SITE.by}</address></li>
       </ul>
     </div>
     <div>
-      <h2>Følg stalden</h2>
+      <h2>Følg Mathias</h2>
       <ul>
-        <li>${ekstern(SITE.facebook, 'Facebook', '')}</li>
-        <li>${ekstern(SITE.instagram, 'Instagram', '')}</li>
         <li>${ekstern(SITE.travinfo, 'Travinfo', '')}</li>
       </ul>
     </div>
   </div>
   <div class="wrap bund__linje">
-    <p>Hjemmebane: ${ekstern(SITE.skiveTrav, 'Skive Trav', '')}</p>
+    <p>Hjemmebane: Spar Nord Arena Aalborg</p>
     <p>Resultater og statistik: Dansk Hestevæddeløb · opdateret ${o.opdateret}</p>
-    <p>© ${new Date().getFullYear()} ${SITE.navn} · ${SITE.firma} · CVR ${SITE.cvr}</p>
+    <p>© ${new Date().getFullYear()} ${SITE.navn}${SITE.firma ? ` · ${SITE.firma}` : ''}${SITE.cvr ? ` · CVR ${SITE.cvr}` : ''}</p>
     <p class="bund__niveo"><a href="https://niveo.dk" target="_blank" rel="noopener">Hjemmeside af <img src="${R}assets/img/niveo-logo.webp" width="1400" height="299" alt="Niveo" loading="lazy" decoding="async">${nyFane}</a></p>
   </div>
 </footer>`;
 
+const OG = BILLEDER.hero ? 'assets/img/og.jpg' : ''; // ← og.jpg laves af hero-fotoet, når det er kommet
 const organisation = () => ({
   '@type': ['LocalBusiness', 'SportsOrganization'],
   '@id': `${SITE.url}/#stald`,
   name: SITE.navn,
-  description: 'Professionel travtræning i Skive: tilkøring af ungheste og træning af løbsheste.',
+  description: 'Professionel travkusk og træner med A1-licens og Spar Nord Arena Aalborg som hjemmebane.',
   url: `${SITE.url}/`,
   telephone: tlfLink,
-  email: SITE.email,
-  image: `${SITE.url}/assets/img/og.jpg`,
-  logo: `${SITE.url}/assets/img/logo-navy.png`,
+  ...(SITE.email ? { email: SITE.email } : {}),
+  ...(OG ? { image: `${SITE.url}/${OG}` } : {}),
   sport: 'Travsport',
   address: { '@type': 'PostalAddress', streetAddress: SITE.gade, postalCode: SITE.postnr, addressLocality: SITE.by, addressCountry: 'DK' },
-  founder: { '@id': `${SITE.url}/#magnus` },
-  sameAs: [SITE.facebook, SITE.instagram, SITE.travinfo],
+  founder: { '@id': `${SITE.url}/#mathias` },
+  sameAs: [SITE.travinfo],
 });
 const person = () => ({
   '@type': 'Person',
-  '@id': `${SITE.url}/#magnus`,
-  name: 'Magnus M. Nielsen',
-  jobTitle: 'Professionel travtræner og kusk',
-  url: `${SITE.url}/om-magnus/`,
+  '@id': `${SITE.url}/#mathias`,
+  name: 'Mathias Jensen',
+  jobTitle: 'Professionel travkusk og træner',
+  url: `${SITE.url}/om-mathias/`,
   worksFor: { '@id': `${SITE.url}/#stald` },
   sameAs: [SITE.travinfo],
 });
@@ -278,20 +296,17 @@ function layout({ sti, titel, beskrivelse, indhold, o, klasse = '', noindex = fa
 <title>${esc(titel)}</title>
 <meta name="description" content="${esc(beskrivelse)}">
 ${noindex ? '<meta name="robots" content="noindex">' : '<link rel="canonical" href="' + kanonisk + '">'}
-<meta name="theme-color" content="#0a1428">
+<meta name="theme-color" content="#0b1410">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="da_DK">
 <meta property="og:site_name" content="${SITE.navn}">
 <meta property="og:title" content="${esc(titel)}">
 <meta property="og:description" content="${esc(beskrivelse)}">
 <meta property="og:url" content="${kanonisk}">
-<meta property="og:image" content="${SITE.url}/assets/img/og.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="887">
-<meta property="og:image:alt" content="Magnus M. Nielsen i sulkyen bag en travhest i fuld fart">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" sizes="48x48" href="${R}assets/img/ikon-48.png">
-<link rel="apple-touch-icon" href="${R}assets/img/ikon-180.png">
+${OG ? `<meta property="og:image" content="${SITE.url}/${OG}">
+<meta property="og:image:alt" content="Mathias Jensen i sulkyen">
+<meta name="twitter:card" content="summary_large_image">` : '<meta name="twitter:card" content="summary">'}
+<link rel="icon" type="image/svg+xml" href="${R}assets/img/ikon.svg">
 <link rel="preload" href="${R}assets/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${R}assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${R}assets/css/site.css?v=${V}">
@@ -317,7 +332,7 @@ ${bund(o)}
 // `helt`: på liggende skærme får sidehovedet samme format som det brede billede, så fotoet ses i fuld størrelse.
 // Et tal under 1 (fx .9) er den del af fotoets højde, der vises – resten skæres af i bunden med posBred '50% 0%'.
 const sidehoved = ({ oje, h1, tekst, billede, bred, alt, pos = '50% 30%', posBred = '50% 30%', kredit = '', helt = false }) => `
-<section class="sidehoved${bred ? ' sidehoved--fuld' : ''}${bred && helt ? ' sidehoved--helt' : ''}"${bred && helt ? ` style="--ratio:${(BILLEDER[bred][0] / (helt === true ? 1 : helt)).toFixed(3)}"` : ''}>
+<section class="sidehoved${bred ? ' sidehoved--fuld' : ''}${bred && helt ? ' sidehoved--helt' : ''}"${bred && helt ? ` style="--ratio:${(forhold(bred) / (helt === true ? 1 : helt)).toFixed(3)}"` : ''}>
   <picture class="sidehoved__billede" style="--pos:${pos};--pos-bred:${posBred}">${bred ? `
     <source media="(max-aspect-ratio: 1/1)" srcset="${srcset(billede)}" sizes="100vw">` : ''}
     ${img(bred ?? billede, alt, { sizes: bred ? '100vw' : '(min-width: 961px) 50vw, 100vw', lazy: false, pos: null })}
@@ -334,7 +349,7 @@ const sidehoved = ({ oje, h1, tekst, billede, bred, alt, pos = '50% 30%', posBre
 
 /**
  * Skematisk Danmarkskort. `punkter` er [{ kode, navn, antal? }]: med antal tegnes en boble med tallet i,
- * uden antal en lille prik. Skive (hjemmebanen) får en ring, og der tegnes linjer derfra til de andre baner.
+ * uden antal en lille prik. Hjemmebanen (Aalborg) får en ring, og der tegnes linjer derfra til de andre baner.
  */
 function danmarkskort(punkter, beskrivelse) {
   const { bredde, hoejde, lon0, lat1, kx, ky, sti } = KORT;
@@ -342,9 +357,9 @@ function danmarkskort(punkter, beskrivelse) {
   const vist = punkter.filter((p) => BANE_POS[p.kode]).map((p) => {
     const [lon, lat] = BANE_POS[p.kode];
     const r = p.antal ? +(8 + 6 * Math.sqrt(p.antal / max)).toFixed(1) : 7;
-    return { ...p, x: +((lon - lon0) * kx).toFixed(1), y: +((lat1 - lat) * ky).toFixed(1), r, ydre: p.kode === 'Sk' ? r + (p.antal ? 4 : 6) : r };
+    return { ...p, x: +((lon - lon0) * kx).toFixed(1), y: +((lat1 - lat) * ky).toFixed(1), r, ydre: p.kode === HJEMME ? r + (p.antal ? 4 : 6) : r };
   });
-  const hjem = vist.find((p) => p.kode === 'Sk');
+  const hjem = vist.find((p) => p.kode === HJEMME);
   const ruter = hjem ? vist.filter((p) => p !== hjem) : [];
 
   // Navnet sættes dér, hvor det bedst holder sig inden for kortet og fri af ruter og andre baner.
@@ -391,7 +406,7 @@ const kommendeListe = (liste) => `<ul class="kom">${liste.map((k) => `
       <li>
         <time datetime="${k.dato}"><b>${kortDato(k.dato)}</b> ${ugedag(k.dato)}</time>
         <span class="kom__hest">${esc(k.hest)}</span>
-        <span class="kom__bane">${esc(bane(k.bane))} · ${k.loeb}. løb${k.kusk ? ` · ${esc(k.kusk)}` : ''}</span>
+        <span class="kom__bane">${esc(bane(k.bane))} · ${k.loeb}. løb${k.kusk ? ` · ${esc(k.kusk)}` : ''}${k.traener ? ` · tr. ${esc(k.traener)}` : ''}</span>
       </li>`).join('')}
     </ul>`;
 
@@ -407,46 +422,34 @@ const hestekort = (h, href, eksternt) => `
         <p class="kort__tal">${!h.starter ? 'Ustartet' : `${kr(h.praemier)} · ${sejre(h) ? `${sejre(h)} ${sejre(h) === 1 ? 'sejr' : 'sejre'}` : `${h.starter} ${h.starter === 1 ? 'start' : 'starter'}`}`}${eksternt ? nyFane : ''}</p>
       </a>`;
 
+const flertal = (n, en, flere) => `${n} ${n === 1 ? en : flere}`;
+
 const ydelser = (o) => `
-    <ol class="ydelser">
+    <ol class="ydelser ydelser--to">
       <li data-vis>
         <span class="ydelser__nr">01</span>
-        <h3>Træning af løbsheste</h3>
-        <p>Stalden træner og starter løbsheste på baner over hele landet. I ${o.saeson.aar} har staldens heste været til start i ${dkListe(o.banerIAar)}.</p>
+        <h3>Kusk til din hest</h3>
+        <p>Mathias kører løb for trænere rundt i landet. I ${o.kuskSaeson.aar} er det blevet til ${o.kuskSaeson.starter} starter${o.banerIAar.length ? ` i ${dkListe(o.banerIAar)}` : ''}.</p>
       </li>
       <li data-vis style="--i:1">
         <span class="ydelser__nr">02</span>
-        <h3>Tilkøring af ungheste</h3>
-        <p>Ungheste køres til og bygges op til deres første starter.${o.ungheste.length > 1 ? ` Lige nu står ${o.ungheste.length} åringer og 2-årige på træningslisten.` : ''}</p>
-      </li>
-      <li data-vis style="--i:2">
-        <span class="ydelser__nr">03</span>
-        <h3>Sparring ved hestekøb</h3>
-        <p>Går du med tanker om en ny hest, hjælper Magnus med at vurdere mulighederne og finde den hest, der passer til dine ambitioner og dit budget – også på selve auktionsdagen.</p>
+        <h3>Træning af løbsheste</h3>
+        <p>En lille stald i ${SITE.by} med ${flertal(o.heste.length, 'hest', 'heste')} i træning lige nu og Spar Nord Arena Aalborg som hjemmebane.</p>
       </li>
     </ol>`;
 
 const ejerbaand = () => `
 <section class="baand">
   <picture class="baand__billede">
-    ${img('aften', 'Ung travhest på folden i aftenlys')}
+    ${img('baand', 'Mathias Jensen bag Lulu på Jydsk Væddeløbsbane')}
   </picture>
   <div class="wrap baand__tekst">
-    <p class="oje" data-vis>For hesteejere</p>
-    <h2 data-vis style="--i:1">Vi forfølger derbydrømmen <em>– sammen med dig.</em></h2>
-    <p data-vis style="--i:2">Har du en hest, der skal i træning, en unghest, der skal køres til, eller overvejer du at købe hest? Ring eller skriv – så tager Magnus gerne en snak om mulighederne.</p>
-    <p data-vis style="--i:3">${knap('kontakt/', 'Kontakt Magnus', 'knap--lys')}</p>
+    <p class="oje" data-vis>For trænere og hesteejere</p>
+    <h2 data-vis style="--i:1">Mangler din hest <em>en kusk?</em></h2>
+    <p data-vis style="--i:2">Skal din hest have en kusk til næste start, eller har du en hest, der skal i træning? Ring eller skriv – så tager Mathias gerne en snak om mulighederne.</p>
+    <p data-vis style="--i:3">${knap('kontakt/', 'Kontakt Mathias', 'knap--lys')}</p>
   </div>
 </section>`;
-
-const partnerKrafft = (i = 0) => `<a class="partner" href="${SITE.krafft}" target="_blank" rel="noopener" data-vis style="--i:${i}">
-        <span class="partner__logo partner__logo--krafft"><img src="${R}assets/img/krafft.png" width="814" height="619" alt="KRAFFT" loading="lazy"></span>
-        <span class="partner__rolle">Sponsor og samarbejdspartner ${ud}${nyFane}</span>
-      </a>`;
-const partnerSkive = (rolle, i = 0) => `<a class="partner" href="${SITE.skiveTrav}" target="_blank" rel="noopener" data-vis style="--i:${i}">
-        <span class="partner__logo partner__logo--tekst">Skive Trav</span>
-        <span class="partner__rolle">${rolle} ${ud}${nyFane}</span>
-      </a>`;
 
 const statTabel = (titel, raekker) => `
       <div class="tabelboks" role="region" aria-label="${titel}" tabindex="0">
@@ -461,23 +464,23 @@ const statTabel = (titel, raekker) => `
 
 // ---------- sider ----------
 
-const forside = (o) => `
+const forside = (o, data) => `
 <section class="hero">
   <picture class="hero__billede">
-    ${img('hero', 'Magnus M. Nielsen i sulkyen bag en travhest i fuld fart', { lazy: false })}
+    ${img('hero', 'Mathias Jensen i grøn dragt bag Karlo på Jydsk Væddeløbsbane', { lazy: false })}
   </picture>
   <div class="wrap hero__tekst">
-    <p class="oje" style="--i:0">${SITE.navn} · Skive</p>
-    <h1><span class="hero__navn" style="--i:1">Magnus M. <em>Nielsen</em></span> <span class="hero__titel" style="--i:2">Professionel travtræner i Skive</span></h1>
-    <p class="hero__indled" style="--i:3">Fra første tilkøring til målstregen: Stalden på Flyvej træner ${o.heste.length} heste${o.ungheste.length ? ' – fra ungheste til rutinerede løbsheste' : ''}.</p>
-    <p class="hero__valg" style="--i:4">${knap('kontakt/', 'Kontakt Magnus', 'knap--lys')} ${laes('stalden/', 'Se stalden')}</p>
+    <p class="oje" style="--i:0">Travkusk og træner · Aalborg</p>
+    <h1><span class="hero__navn" style="--i:1">Mathias <em>Jensen</em></span> <span class="hero__titel" style="--i:2">Professionel travkusk og træner</span></h1>
+    <p class="hero__indled" style="--i:3">A1-licens som både kusk og træner. I ${o.kuskSaeson.aar} har Mathias kørt ${o.kuskSaeson.starter} løb og vundet ${o.kuskSaeson.sejre} – med Spar Nord Arena Aalborg som hjemmebane.</p>
+    <p class="hero__valg" style="--i:4">${knap('kontakt/', 'Kontakt Mathias', 'knap--lys')} ${laes('resultater/', 'Se resultater')}</p>
   </div>
   <div class="hero__tal">
     <dl class="wrap">
+      <div><dt>Starter som kusk i ${o.kuskSaeson.aar}</dt><dd>${o.kuskSaeson.starter}</dd></div>
+      <div><dt>Sejre som kusk i ${o.kuskSaeson.aar}</dt><dd>${o.kuskSaeson.sejre}</dd></div>
+      <div><dt>Indkørt som kusk i ${o.kuskSaeson.aar}</dt><dd>${nf(o.kuskSaeson.praemier)}<small>&nbsp;kr.</small></dd></div>
       <div><dt>Heste i træning</dt><dd>${o.heste.length}</dd></div>
-      <div><dt>Sejre som træner i ${o.saeson.aar}</dt><dd>${o.saeson.sejre}</dd></div>
-      <div><dt>Sejrsprocent i ${o.saeson.aar}</dt><dd>${o.saeson.procent}<small>&nbsp;%</small></dd></div>
-      <div><dt>Indkørt af stalden i ${o.saeson.aar}</dt><dd>${nf(o.saeson.praemier)}<small>&nbsp;kr.</small></dd></div>
     </dl>
     <p class="wrap hero__kilde">Tal fra Dansk Hestevæddeløb · opdateret ${o.opdateret}</p>
   </div>
@@ -486,49 +489,29 @@ const forside = (o) => `
 <section class="sek sek--taet-bund">
   <div class="wrap duo">
     <div class="duo__billede">
-      ${figur('magnus', 'Magnus M. Nielsen i sulkyen med vinderbuket', 'Magnus i staldens farver: blå, grå og hvid.', { sizes: '(min-width: 900px) 38vw, 92vw' })}
+      ${figur('mathias', 'Mathias Jensen', '', { sizes: '(min-width: 900px) 38vw, 92vw' })}
     </div>
     <div class="duo__tekst">
-      <p class="oje" data-vis>Om Magnus</p>
-      <h2 data-vis style="--i:1">Fra dansk jockeymester <em>til egen stald.</em></h2>
-      <p class="indled" data-vis style="--i:2">Magnus M. Nielsen er født i 2001 og hører til blandt landets yngste professionelle trænere.</p>
-      <p data-vis style="--i:3">Han vandt DM for jockeyer i 2021, sejrede to år i træk i Summer Meeting Talents på Åby og blev nomineret til Årets Komet ved Hestesportens Galla 2024. I dag har han A1-licens som både træner og kusk – og ${o.heste.length} heste i træning på Flyvej i Skive.</p>
-      <p class="valg" data-vis style="--i:4">${laes('om-magnus/', 'Læs mere om Magnus')}</p>
+      <p class="oje" data-vis>Om Mathias</p>
+      <h2 data-vis style="--i:1">Kusk for mange – <em>træner for de få.</em></h2>
+      <p class="indled" data-vis style="--i:2">Mathias Jensen er født i ${data.traener.foedt} – tidligere dansk mester for amatørkuske og Årets Komet 2021.</p>
+      <p data-vis style="--i:3">I 2026 fik han A-licens og egen stald i ${SITE.by}. De fleste løb kører han for andre trænere: over de seneste ${o.kuskIalt.aar} sæsoner er det blevet til ${nf(o.kuskIalt.starter)} starter og ${o.kuskIalt.sejre} sejre som kusk.</p>
+      <p class="valg" data-vis style="--i:4">${laes('om-mathias/', 'Læs mere om Mathias')}</p>
     </div>
   </div>
 </section>
 
-<section class="sek sek--tone sek--taet-top sek--taet-bund">
+<section class="sek sek--tone">
   <div class="wrap">
-    <div class="duo duo--omvendt">
-      <div class="duo__tekst">
-        <p class="oje" data-vis>Stalden</p>
-        <h2 data-vis style="--i:1">Træning hele vejen – <em>fra unghest til løbshest.</em></h2>
-        <p class="indled" data-vis style="--i:2">${SITE.navn} holder til på Flyvej i Skive, på samme vej som hjemmebanen Skive Trav.</p>
-        <p class="valg" data-vis style="--i:3">${laes('stalden/', 'Se stalden')}</p>
+    <div class="sekhoved">
+      <div>
+        <p class="oje" data-vis>Det tilbyder Mathias</p>
+        <h2 data-vis style="--i:1">I sulkyen <em>og i stalden.</em></h2>
       </div>
-      <div class="duo__billede kollage">
-        ${figur('stald-gang', 'Mørk travhest med blåt dækken i staldgangen', '', { sizes: '(min-width: 900px) 40vw, 92vw' })}
-        <div class="kollage__lille billede" data-vis="billede">${img('stald-vask', 'Travhest med blå bandager på vaskepladsen', { sizes: '(min-width: 900px) 18vw, 40vw' })}</div>
-      </div>
+      <p data-vis style="--i:2">Kontakt Mathias for pris og ledige datoer.</p>
     </div>
     ${ydelser(o)}
-    <p class="note" data-vis>Kontakt Magnus for pris.</p>
   </div>
-</section>
-
-<section class="film" aria-label="Billeder fra stalden og banen">
-  <ul class="film__spor">${[
-    ['stald-hest', 'Mørk travhest med hue i staldgangen'],
-    ['stald-lys', 'Brun travhest i den lyse staldgang'],
-    ['stald-fold', 'Travhest med hue og dækken foran foldene'],
-    ['stald-moerk', 'Mørk travhest set tæt på i stalden'],
-    ['stald-bandager', 'Travhest med blå bandager i staldgangen'],
-    ['stald-detalje', 'Brun travhest med hue og bandager – staldens logo sidder på hovklokkerne'],
-    ['stald-blik', 'Travhest kigger frem fra staldgangen'],
-  ].map(([navn, alt]) => `
-    <li style="--r:${BILLEDER[navn][0]}">${img(navn, alt, { sizes: '(min-width: 1500px) 270px, (min-width: 901px) 19vw, 62vw' })}</li>`).join('')}
-  </ul>
 </section>
 
 <section class="sek">
@@ -536,105 +519,89 @@ const forside = (o) => `
     <div class="sekhoved">
       <div>
         <p class="oje" data-vis>Heste i træning</p>
-        <h2 data-vis style="--i:1">Holdet <em>på Flyvej.</em></h2>
+        <h2 data-vis style="--i:1">Stalden <em>i ${SITE.by}.</em></h2>
       </div>
-      <p data-vis style="--i:2">${o.heste.length} heste står på træningslisten lige nu${o.ungheste.length > 1 ? ` – ${o.ungheste.length} ungheste på vej og ${o.heste.length - o.ungheste.length} i løbsalderen` : ''}.</p>
+      <p data-vis style="--i:2">${flertal(o.heste.length, 'hest', 'heste')} på træningslisten lige nu. Listen følger Dansk Hestevæddeløb og opdateres af sig selv.</p>
     </div>
-    ${o.fotoheste.length ? `<div class="kortraekke" style="--n:${Math.min(4, o.fotoheste.length)}">${o.fotoheste.slice(0, 4).map((h) => hestekort(h, `${R}heste/#hest-${h.id}`)).join('')}
-    </div>` : ''}
-    <p class="midt" data-vis>${knap('heste/', `Se alle ${o.heste.length} heste`, 'knap--kant')}</p>
+    <ul class="hesteliste">${o.heste.map(hesteraekke).join('')}
+    </ul>
+    <p class="midt" data-vis>${knap('heste/', 'Se hestene', 'knap--kant')}</p>
   </div>
 </section>
 
 <section class="sek--mork resbane">
-  <div class="resbane__billede">${img('loeb-nr3-aarhus', 'Magnus M. Nielsen i sulkyen bag travhest nr. 3 i fuld fart på Jydsk Væddeløbsbane', { pos: '50% 48%' })}</div>
+  <div class="resbane__billede">${img('loeb', 'Mathias Jensen bag Liga på Spar Nord Arena Aalborg', { pos: '50% 55%' })}</div>
   <div class="wrap duo duo--top">
     <div class="duo__tekst">
       <p class="oje" data-vis>Resultater</p>
       <h2 data-vis style="--i:1">Seneste <em>fra banen.</em></h2>
-      <p class="indled" data-vis style="--i:2">Staldens seneste starter og kommende løb – hentet fra Dansk Hestevæddeløb og opdateret ${o.opdateret}.</p>
+      <p class="indled" data-vis style="--i:2">Mathias' seneste løb som kusk og hans næste kørsler – hentet fra Dansk Hestevæddeløb og opdateret ${o.opdateret}.</p>
       <p class="valg" data-vis style="--i:3">${knap('resultater/', 'Alle resultater', 'knap--lys')} ${ekstern(SITE.travinfo, 'Se Travinfo')}</p>
     </div>
     <div class="duo__lister" data-vis style="--i:2">
-      <h3 class="mini">Seneste starter</h3>
-      ${resultatliste(o.seneste.slice(0, 5))}
-      ${o.kommende.length ? `<h3 class="mini">Kommende starter</h3>
-      ${kommendeListe(o.kommende.slice(0, 4))}` : ''}
+      <h3 class="mini">Seneste løb som kusk</h3>
+      ${resultatliste(o.kuskSeneste.slice(0, 5))}
+      ${o.kuskKommende.length ? `<h3 class="mini">Næste kørsler</h3>
+      ${kommendeListe(o.kuskKommende.slice(0, 4))}` : ''}
     </div>
   </div>
 </section>
 
 ${ejerbaand()}
-
-<section class="sek sek--smal">
-  <div class="wrap partnere">
-    <h2 class="oje" data-vis>Samarbejdspartnere</h2>
-    <div class="partnere__gitter">
-      ${partnerKrafft()}
-      ${partnerSkive('Hjemmebane', 1)}
-    </div>
-  </div>
-</section>
-
-<section class="sek sek--tone sek--smal">
-  <div class="wrap sekhoved sekhoved--foelg">
-    <div>
-      <p class="oje" data-vis>Følg stalden</p>
-      <h2 data-vis style="--i:1">Hverdagen, <em>dag for dag.</em></h2>
-      <p data-vis style="--i:2">Dagens starter, resultater og nyt om hestene deles løbende på Facebook og Instagram.</p>
-    </div>
-    <div>
-      <div class="fliser">
-        <div class="billede" data-vis="billede">${img('flise-1', 'Travhest med blis i staldgangen', { sizes: '(min-width: 961px) 13vw, 30vw' })}</div>
-        <div class="billede" data-vis="billede" style="--i:1">${img('flise-2', 'Travhest i staldgangen', { sizes: '(min-width: 961px) 13vw, 30vw' })}</div>
-        <div class="billede" data-vis="billede" style="--i:2">${img('stald-ro', 'Travhest står i staldgangen', { sizes: '(min-width: 961px) 13vw, 30vw' })}</div>
-      </div>
-      <ul class="some" data-vis style="--i:2">
-        <li><a href="${SITE.facebook}" target="_blank" rel="noopener"><span>Facebook</span><b>${SITE.navn}</b>${ud}${nyFane}</a></li>
-        <li><a href="${SITE.instagram}" target="_blank" rel="noopener"><span>Instagram</span><b>@stald_magnusmnielsen</b>${ud}${nyFane}</a></li>
-      </ul>
-    </div>
-  </div>
-</section>
 ${kontaktbaand()}`;
 
-const omMagnus = (o, data) => `
+// Historien bygger på travservice.dk (2017–2026) og Mikkel (A-licens i 2026); tallene kommer fra Dansk Hestevæddeløb.
+const MILEPAELE = [
+  ['2016', 'Amatørchampion i Aalborg', 'Vinder amatørchampionatet på hjemmebanen.'],
+  ['2017', 'EM for amatørkuske', 'Repræsenterer Danmark ved EM i Schweiz og Frankrig.'],
+  ['2021', 'Årets Komet', 'Kåres som Årets Komet ved Hestesportens Galla.'],
+  ['2023', 'Dansk mester', 'Vinder DM for amatørkuske på Fyens Væddeløbsbane.'],
+  ['2024', 'Jockey hos Kaj Jensen', 'Bedste dansker ved NM for amatørkuske i Finland – og bliver jockey hos Kaj Jensen.'],
+  ['2026', 'A-licens og egen stald', 'Får A-licens som træner og kusk og starter egen stald i Arden.'],
+];
+const omMathias = (o, data) => {
+  const topHest = o.heste.find((h) => h.starter);
+  return `
 ${sidehoved({
-  oje: 'Om Magnus',
-  h1: 'Om <em>Magnus</em>',
-  tekst: `Professionel travtræner og kusk med A1-licens. Født i ${data.traener.foedt} – og med ${esc(data.traener.hjemmebane)} som hjemmebane.`,
-  billede: 'magnus-kjeld',
-  bred: 'magnus-kjeld',
-  alt: 'Magnus M. Nielsen i sulkyen i staldens farver',
-  pos: '46% 30%',
-  posBred: '50% 0%',
-  kredit: 'Foto: Kjeld Mikkelsen',
+  oje: 'Om Mathias',
+  h1: 'Om <em>Mathias</em>',
+  tekst: `Professionel travkusk og træner med A1-licens. Født i ${data.traener.foedt} – og med ${esc(data.traener.hjemmebane)} som hjemmebane.`,
+  billede: 'portraet',
+  bred: 'portraet', // hele fotoet i fuld bredde på liggende skærme
+  helt: true,
+  alt: 'Mathias Jensen med vinderbuket i Aalborg',
+  pos: '68% 35%',
+  posBred: '50% 50%',
 })}
 
 <section class="sek">
   <div class="wrap artikel">
     <aside class="fakta">
-      <div class="fakta__foto billede" data-vis="billede">${img('magnus', 'Magnus M. Nielsen i sulkyen med vinderbuket', { sizes: '(min-width: 961px) 30vw, 92vw' })}</div>
+      <div class="fakta__foto billede" data-vis="billede">${img('stald', 'Mathias Jensen i løb i Aalborg', { sizes: '(min-width: 961px) 30vw, 92vw' })}</div>
       <h2 class="oje">Kort fortalt</h2>
       <dl>
         <div><dt>Født</dt><dd>${data.traener.foedt}</dd></div>
-        <div><dt>Licens</dt><dd>${esc(data.traener.licens)} – professionel træner og kusk</dd></div>
+        <div><dt>Licens</dt><dd>${esc(data.traener.licens)} – professionel træner og kusk (fra 2026)</dd></div>
+        <div><dt>Titler</dt><dd>DM for amatørkuske 2023, Årets Komet 2021</dd></div>
         <div><dt>Hjemmebane</dt><dd>${esc(data.traener.hjemmebane)}</dd></div>
-        <div><dt>Farver</dt><dd>Blå, grå og hvid</dd></div>
-        <div><dt>Stald</dt><dd>${SITE.gade}, ${SITE.postnr} ${SITE.by}</dd></div>
+        <div><dt>Farver</dt><dd>Grøn og sort</dd></div>
+        <div><dt>Stald</dt><dd>${SITE.by}</dd></div>
         <div><dt>Heste i træning</dt><dd>${o.heste.length}</dd></div>
       </dl>
     </aside>
     <div class="prosa">
       <h2 data-vis>Kusken</h2>
-      <p class="indled" data-vis>Magnus M. Nielsen kommer fra en travfamilie, hvor også Mads Hviid og Casper M. Nielsen er aktive kuske. Selv slog han igennem som jockey.</p>
-      <p data-vis>I 2021 vandt han DM for jockeyer i Aalborg, og på Åby i Sverige vandt han talentløbet Summer Meeting Talents to år i træk. I 2024 fulgte en andenplads ved DM for jockeyer og 11 sejre på en sæson, og i januar 2025 blev han nomineret til Årets Komet ved Hestesportens Galla.</p>
-      <p data-vis>Blandt sejrene fra jockeyårene er en afdeling af Sigter mod stjernerne i Aarhus med Major Love og en sejr i Jockeyserien ved Derbymeetinget på Charlottenlund med New York Lobell. Til daglig arbejdede han dengang hos Skive-træneren Morten Friis.</p>
+      <p class="indled" data-vis>Mathias Jensen begyndte som amatørkusk på hjemmebanen i Aalborg – og blev hurtigt en af de bedste.</p>
+      <p data-vis>I 2016 vandt han amatørchampionatet i Aalborg, og året efter repræsenterede han Danmark ved EM for amatørkuske i Schweiz og Frankrig. I 2021 blev han kåret som Årets Komet ved Hestesportens Galla.</p>
+      <p data-vis>I 2023 vandt han DM for amatørkuske på Fyens Væddeløbsbane efter en tæt kamp, og ved NM for amatørkuske i Finland i 2024 blev han bedste dansker – kun ét point fra bronze. Samme år blev han jockey hos træner Kaj Jensen.</p>
+      <p data-vis>I ${o.kuskSaeson.aar} har han kørt ${o.kuskSaeson.starter} løb, vundet ${o.kuskSaeson.sejre} og været blandt de tre første ${o.kuskSaeson.sejre + o.kuskSaeson.toer + o.kuskSaeson.treer} gange.${o.banerIAar.length > 1 ? ` Løbene er kørt i ${dkListe(o.banerIAar)}.` : ''}</p>
+      <p data-vis>Over de seneste ${o.kuskIalt.aar} sæsoner er det blevet til ${nf(o.kuskIalt.starter)} starter og ${o.kuskIalt.sejre} sejre som kusk.</p>
 
       <h2 data-vis>Træneren</h2>
-      <p data-vis>Den første sejr som træner kom 29. december 2024, da hoppen Hit Me vandt i Aalborg. I 2025 var hun stadig den eneste hest, Magnus startede som træner. I løbet af 2026 voksede stalden fra én hest til over tyve.</p>
-      <p data-vis>Lige nu står ${o.heste.length} heste på træningslisten. I ${o.saeson.aar} har stalden vundet ${o.saeson.sejre} løb på ${o.saeson.starter} starter, og som kusk har Magnus vundet ${o.kusk.sejre} løb i samme sæson.</p>
-      <p data-vis>Blandt højdepunkterne i 2026 er tre vindere på samme løbsdag på hjemmebanen 10. juni, Kriteriumsvinderen Karat C N, der vandt i Aalborg to uger efter debuten for stalden, og en tredjeplads til Hit Me i DM for hopper på Fyn.</p>
+      <p class="indled" data-vis>I 2026 fik Mathias A-licens og tog springet til egen stald i ${SITE.by}.</p>
+      <p data-vis>Lige nu står ${dkListe(o.heste.map((h) => esc(h.navn)))} på træningslisten, og han skal også i gang med nogle af sin fars heste. Han håber, at flere hesteejere vil bruge ham – både som træner og som kusk.</p>${o.bedsteTraenerAar ? `
+      <p data-vis>Han har også trænet heste før A-licensen – bedste sæson var ${o.bedsteTraenerAar.aar} med ${o.bedsteTraenerAar.sejre} sejre på ${o.bedsteTraenerAar.starter} starter og ${kr(o.bedsteTraenerAar.praemier)} indkørt.</p>` : ''}${topHest ? `
+      <p data-vis>${o.heste.length > 1 ? `Den hest på holdet, der har tjent mest, er ${esc(topHest.navn)} – en` : `${esc(topHest.navn)} er en`} ${omHest(topHest)} ${afstamning(topHest)} med ${flertal(sejre(topHest), 'sejr', 'sejre')} og ${kr(topHest.praemier)} i karrieren.</p>` : ''}
     </div>
   </div>
 </section>
@@ -647,16 +614,13 @@ ${sidehoved({
         <h2 data-vis style="--i:1">Karrieren <em>kort.</em></h2>
       </div>
     </div>
-    <ol class="tidslinje">
-      <li data-vis><span class="tidslinje__aar">2021</span><h3>Danmarksmester for jockeyer</h3><p>Vinder DM for jockeyer i Aalborg.</p></li>
-      <li data-vis style="--i:1"><span class="tidslinje__aar">2022–23</span><h3>Summer Meeting Talents</h3><p>Vinder talentløbet på Åby i Sverige to år i træk.</p></li>
-      <li data-vis style="--i:2"><span class="tidslinje__aar">2024</span><h3>Årets Komet-nominering</h3><p>Nr. 2 ved DM for jockeyer, 11 sejre på en sæson og første sejr som træner. Nomineres til Årets Komet ved Hestesportens Galla.</p></li>
-      <li data-vis style="--i:3"><span class="tidslinje__aar">2026</span><h3>Egen stald i vækst</h3><p>Stalden vokser fra én hest til over tyve – med tre vindere på én løbsdag i Skive 10. juni.</p></li>
+    <ol class="tidslinje tidslinje--seks">${MILEPAELE.map(([aar, titel, tekst], i) => `
+      <li data-vis style="--i:${i % 3}"><span class="tidslinje__aar">${aar}</span><h3>${titel}</h3><p>${tekst}</p></li>`).join('')}
     </ol>
   </div>
 </section>
 
-<section class="sek">
+<section class="sek sek--tone">
   <div class="wrap">
     <div class="sekhoved">
       <div>
@@ -666,86 +630,14 @@ ${sidehoved({
       <p data-vis style="--i:2">Officielle tal fra Dansk Hestevæddeløb, opdateret ${o.opdateret}.<br>${ekstern(SITE.travinfo, 'Se alle tal på Travinfo')}</p>
     </div>
     <div class="tabeller" data-vis>
-      ${statTabel('Som træner', data.traenerStatistik)}
       ${statTabel('Som kusk', data.kuskStatistik)}
+      ${statTabel('Som træner', data.traenerStatistik)}
     </div>
   </div>
 </section>
 ${ejerbaand()}
 ${kontaktbaand()}`;
-
-const stalden = (o) => `
-${sidehoved({
-  oje: 'Stalden',
-  h1: 'Stalden <em>i Skive</em>',
-  tekst: `På Flyvej i Skive – samme vej som hjemmebanen Skive Trav – har ${SITE.navn} ${o.heste.length} heste i træning.`,
-  billede: 'fold-fuks',
-  bred: 'fold-fuks',
-  alt: 'Fuks på folden ved stalden i solskin',
-  pos: '36% 50%',
-  posBred: '50% 55%',
-})}
-
-<section class="sek">
-  <div class="wrap">
-    <div class="sekhoved">
-      <div>
-        <p class="oje" data-vis>Miljøet</p>
-        <h2 data-vis style="--i:1">Et kig <em>ind i stalden.</em></h2>
-      </div>
-      <p data-vis style="--i:2">Lyse staldgange, vaskeplads og folde – og staldens navn på både grimer og hovklokker.</p>
-    </div>
-    <div class="galleri">${[
-      ['stald-hest', 'Mørk travhest med hue i staldgangen – med staldens navneskilt på grimen', 'Staldens navn på grimen.'],
-      ['stald-sele', 'Travhest med løbstøj på væddeløbsbanen i Aalborg', 'Selet op på væddeløbsbanen i Aalborg.'],
-      ['stald-detalje', 'Brun travhest med hue og bandager – staldens logo sidder på hovklokkerne', 'Logoet helt ned på hovklokkerne.'],
-      ['stald-lys', 'Brun travhest i den lyse staldgang', ''],
-      ['stald-fold', 'Travhest med hue og dækken foran foldene', 'Ude ved foldene.'],
-      ['stald-moerk', 'Mørk travhest set tæt på i stalden', ''],
-      ['stald-vask', 'Travhest med blå bandager på vaskepladsen', 'På vaskepladsen.'],
-      ['stald-ro', 'Travhest står i staldgangen', ''],
-      ['stald-blik', 'Travhest kigger frem fra staldgangen', ''],
-    ].map(([navn, alt, tekst]) => `
-      ${figur(navn, alt, tekst, { sizes: '(min-width: 901px) 30vw, 46vw' })}`).join('')}
-    </div>
-  </div>
-</section>
-
-<section class="sek sek--tone">
-  <div class="wrap">
-    <div class="sekhoved">
-      <div>
-        <p class="oje" data-vis>Det tilbyder stalden</p>
-        <h2 data-vis style="--i:1">Fra første tilkøring <em>til målstregen.</em></h2>
-      </div>
-      <p data-vis style="--i:2">Stalden har lige nu heste fra ${o.aldre[0]} til ${o.aldre[1]} år i træning.</p>
-    </div>
-    ${ydelser(o)}
-    <p class="note" data-vis>Kontakt Magnus for pris. ${laes('kontakt/', 'Kontakt Magnus')}</p>
-  </div>
-</section>
-
-<section class="sek">
-  <div class="wrap duo">
-    <div class="duo__tekst">
-      <p class="oje" data-vis>Hjemmebanen</p>
-      <h2 data-vis style="--i:1">Skive <em>Trav.</em></h2>
-      <p class="indled" data-vis style="--i:2">Skive Trav er staldens hjemmebane${o.hjemmestarter ? ` – i ${o.saeson.aar} har stalden haft ${o.hjemmestarter} starter her` : ''}.</p>
-      <p data-vis style="--i:3">Banen åbnede i 1948 som Nordvestjysk Væddeløbsbane og har ligget på Flyvej siden 1966. Et nyt lysanlæg fra 2019–20 gør det muligt at køre løb hele vinteren.</p>
-      <p class="valg" data-vis style="--i:4">${ekstern(SITE.skiveTrav, 'skive-trav.dk')} ${ekstern(SITE.kort, 'Find vej til stalden')}</p>
-      <dl class="adresser" data-vis style="--i:5">
-        <div><dt>Stalden</dt><dd>${SITE.navn}<br>${SITE.gade}, ${SITE.postnr} ${SITE.by}</dd></div>
-        <div><dt>Hjemmebane</dt><dd>Skive Trav<br>Flyvej 2, 7800 Skive</dd></div>
-      </dl>
-    </div>
-    <figure class="kort" data-vis style="--i:2">
-      ${danmarkskort(o.banetal.some((b) => b.kode === 'Sk') ? o.banetal : [{ kode: 'Sk', navn: 'Skive' }, ...o.banetal], `Danmarkskort med staldens starter pr. bane i ${o.saeson.aar}: ${o.banetal.map((b) => `${b.navn} ${b.antal}`).join(', ')}.`)}
-      <figcaption>Staldens starter pr. bane i ${o.saeson.aar}. Ringen markerer hjemmebanen.</figcaption>
-    </figure>
-  </div>
-</section>
-${ejerbaand()}
-${kontaktbaand()}`;
+};
 
 const hesteraekke = (h, i) => `
       <li class="hest" id="hest-${h.id}" data-vis style="--i:${i % 6}">
@@ -772,12 +664,13 @@ const heste = (o) => `
 ${sidehoved({
   oje: 'Heste',
   h1: 'Heste <em>i<br>træning</em>',
-  tekst: `${o.heste.length} heste står lige nu på træningslisten hos Magnus M. Nielsen. Listen kommer direkte fra Dansk Hestevæddeløb og følger automatisk med, når heste kommer til eller rejser videre.`,
-  billede: 'hoved-heste',
-  bred: 'hoved-heste',
-  alt: 'To heste på folden ved stalden',
-  pos: '36% 45%',
-  posBred: '50% 45%',
+  tekst: `${flertal(o.heste.length, 'hest', 'heste')} står lige nu på træningslisten hos Mathias Jensen. Listen kommer direkte fra Dansk Hestevæddeløb og følger automatisk med, når heste kommer til eller rejser videre.`,
+  billede: 'heste',
+  bred: 'heste', // hele fotoet i fuld bredde på liggende skærme
+  helt: true,
+  alt: 'Mathias Jensen bag Karlo på Jydsk Væddeløbsbane',
+  pos: '16% 45%', // mobil: Mathias til venstre i fotoet
+  posBred: '50% 50%',
 })}
 ${o.fotoheste.length ? `
 <section class="sek sek--tone">
@@ -788,7 +681,7 @@ ${o.fotoheste.length ? `
         <h2 data-vis style="--i:1">Ansigter <em>fra stalden.</em></h2>
       </div>
     </div>
-    <div class="kortraekke kortraekke--tre">${o.fotoheste.slice(0, o.fotoheste.length > 3 ? o.fotoheste.length - (o.fotoheste.length % 3) : 3).map((h) => hestekort(h, `https://travinfo.dk/horse_tabs/${h.id}`, true)).join('')}
+    <div class="kortraekke kortraekke--tre">${o.fotoheste.map((h) => hestekort(h, `https://travinfo.dk/horse_tabs/${h.id}`, true)).join('')}
     </div>
   </div>
 </section>` : ''}
@@ -807,30 +700,51 @@ ${kontaktbaand()}`;
 const resultater = (o, data) => `
 ${sidehoved({
   oje: 'Resultater',
-  h1: 'Staldens <em>resultater</em>',
-  tekst: `Staldens seneste starter, kommende løb og sæsonens tal. Data kommer fra Dansk Hestevæddeløb og er senest opdateret ${o.opdateret}.`,
-  billede: 'loeb-aalborg',
-  bred: 'loeb-aalborg',
-  alt: 'Magnus M. Nielsen i sulkyen bag en sort travhest i fuld fart på Aalborg Væddeløbsbane',
-  pos: '90% 40%',
-  posBred: '50% 80%',
+  h1: 'Mathias’ <em>resultater</em>',
+  tekst: `Seneste løb som kusk og træner, næste kørsler og sæsonens tal. Data kommer fra Dansk Hestevæddeløb og er senest opdateret ${o.opdateret}.`,
+  billede: 'resultater',
+  bred: 'resultater', // hele fotoet i fuld bredde på liggende skærme
+  helt: true,
+  alt: 'Mathias Jensen bag Lulu på Jydsk Væddeløbsbane',
+  pos: '30% 45%', // mobil: Mathias til venstre i fotoet
+  posBred: '50% 50%',
 })}
 
 <section class="sek sek--tone sek--smal sek--taet-bund">
   <div class="wrap">
-    <h2 class="oje" data-vis>Stalden i ${o.saeson.aar}</h2>
+    <h2 class="oje" data-vis>Som kusk i ${o.kuskSaeson.aar}</h2>
     <dl class="noegletal" data-vis style="--i:1">
-      <div><dt>Starter</dt><dd>${o.saeson.starter}</dd></div>
-      <div><dt>Sejre</dt><dd>${o.saeson.sejre}</dd></div>
-      <div><dt>2.-pladser</dt><dd>${o.saeson.toer}</dd></div>
-      <div><dt>3.-pladser</dt><dd>${o.saeson.treer}</dd></div>
-      <div><dt>Sejrsprocent</dt><dd>${o.saeson.procent}<small>&nbsp;%</small></dd></div>
-      <div><dt>Indkørt</dt><dd>${nf(o.saeson.praemier)}<small>&nbsp;kr.</small></dd></div>
+      <div><dt>Starter</dt><dd>${o.kuskSaeson.starter}</dd></div>
+      <div><dt>Sejre</dt><dd>${o.kuskSaeson.sejre}</dd></div>
+      <div><dt>2.-pladser</dt><dd>${o.kuskSaeson.toer}</dd></div>
+      <div><dt>3.-pladser</dt><dd>${o.kuskSaeson.treer}</dd></div>
+      <div><dt>Sejrsprocent</dt><dd>${o.kuskSaeson.procent}<small>&nbsp;%</small></dd></div>
+      <div><dt>Indkørt</dt><dd>${nf(o.kuskSaeson.praemier)}<small>&nbsp;kr.</small></dd></div>
     </dl>
     <div class="form" data-vis style="--i:2">
-      <h3 class="mini">Formkurve – de seneste ${o.seneste.length} starter</h3>
-      <ol>${o.seneste.map(placMaerke).join('')}</ol>
+      <h3 class="mini">Formkurve – de seneste ${o.kuskSeneste.length} løb som kusk</h3>
+      <ol>${o.kuskSeneste.map(placMaerke).join('')}</ol>
     </div>
+  </div>
+</section>
+
+<section class="sek sek--taet-top sek--taet-bund">
+  <div class="wrap resgitter">
+    <div>
+      <div class="sekhoved sekhoved--lille">
+        <div>
+          <p class="oje" data-vis>Som kusk</p>
+          <h2 data-vis style="--i:1">De seneste <em>${o.kuskSeneste.length} løb.</em></h2>
+        </div>
+      </div>
+      <div data-vis>${resultatliste(o.kuskSeneste)}</div>
+      <p class="note" data-vis>Tider er kilometertider. a = autostart, g = galop undervejs. – = uplaceret, disk. = diskvalificeret.</p>
+    </div>
+    <aside>
+      <h2 class="oje" data-vis>Næste kørsler</h2>
+      ${o.kuskKommende.length ? `<div data-vis style="--i:1">${kommendeListe(o.kuskKommende)}</div>` : `<p data-vis style="--i:1">Mathias er ikke startmeldt som kusk lige nu.</p>`}
+      <p class="valg" data-vis style="--i:2">${ekstern(SITE.travinfo, 'Startlister på Travinfo')}</p>
+    </aside>
   </div>
 </section>
 
@@ -839,20 +753,32 @@ ${sidehoved({
     <div>
       <div class="sekhoved sekhoved--lille">
         <div>
-          <p class="oje" data-vis>Seneste</p>
-          <h2 data-vis style="--i:1">De seneste <em>${o.seneste.length} starter.</em></h2>
+          <p class="oje" data-vis>Som træner</p>
+          <h2 data-vis style="--i:1">Staldens <em>seneste starter.</em></h2>
         </div>
       </div>
       <div data-vis>${resultatliste(o.seneste)}</div>
-      <p class="note" data-vis>Tider er kilometertider. a = autostart, g = galop undervejs. – = uplaceret, disk. = diskvalificeret.</p>
     </div>
     <aside>
       <h2 class="oje" data-vis>Kommende starter</h2>
       ${o.kommende.length ? `<div data-vis style="--i:1">${kommendeListe(o.kommende)}</div>` : `<p data-vis style="--i:1">Ingen af staldens heste er startmeldt lige nu.</p>`}
-      <p class="valg" data-vis style="--i:2">${ekstern(SITE.travinfo, 'Startlister på Travinfo')}</p>
     </aside>
   </div>
 </section>
+${o.banetal.length ? `
+<section class="sek sek--tone">
+  <div class="wrap duo">
+    <div class="duo__tekst">
+      <p class="oje" data-vis>Banerne</p>
+      <h2 data-vis style="--i:1">Kørsler <em>pr. bane.</em></h2>
+      <p class="indled" data-vis style="--i:2">I ${o.kuskSaeson.aar} har Mathias kørt løb på ${flertal(o.banetal.length, 'bane', 'baner')} – flest i ${o.banetal[0].navn}${o.hjemmestarter && o.banetal[0].kode !== HJEMME ? ` og ${o.hjemmestarter} på hjemmebanen i Aalborg` : ''}.</p>
+    </div>
+    <figure class="kort" data-vis style="--i:2">
+      ${danmarkskort(o.banetal.some((b) => b.kode === HJEMME) ? o.banetal : [{ kode: HJEMME, navn: 'Aalborg' }, ...o.banetal], `Danmarkskort med Mathias' starter som kusk pr. bane i ${o.kuskSaeson.aar}: ${o.banetal.map((b) => `${b.navn} ${b.antal}`).join(', ')}.`)}
+      <figcaption>Starter som kusk pr. bane i ${o.kuskSaeson.aar}. Ringen markerer hjemmebanen.</figcaption>
+    </figure>
+  </div>
+</section>` : ''}
 
 <section class="sek sek--mork">
   <div class="wrap">
@@ -864,8 +790,8 @@ ${sidehoved({
       <p data-vis style="--i:2">Alle resultater, startlister og detaljer findes hos Dansk Hestevæddeløb.<br>${ekstern(SITE.travinfo, 'Åbn Travinfo', 'knap knap--lys')}</p>
     </div>
     <div class="tabeller" data-vis>
-      ${statTabel('Som træner', data.traenerStatistik)}
       ${statTabel('Som kusk', data.kuskStatistik)}
+      ${statTabel('Som træner', data.traenerStatistik)}
     </div>
   </div>
 </section>
@@ -874,14 +800,14 @@ ${kontaktbaand()}`;
 const kontakt = () => `
 ${sidehoved({
   oje: 'Kontakt',
-  h1: 'Kontakt <em>Magnus</em>',
-  tekst: 'Har du en hest, der skal i træning, eller et spørgsmål til stalden? Ring, send en sms eller skriv en mail.',
-  billede: 'stald-solnedgang',
-  bred: 'stald-solnedgang',
-  alt: 'Mørk travhest i blåt dækken på pladsen ved stalden i solnedgang',
-  pos: '30% 50%',
-  posBred: '50% 0%',
-  helt: .72,
+  h1: 'Kontakt <em>Mathias</em>',
+  tekst: `Skal din hest have en kusk, eller har du en hest, der skal i træning? Ring eller send en sms${SITE.email ? ' eller en mail' : ''}.`,
+  billede: 'kontakt',
+  bred: 'kontakt', // hele fotoet i fuld bredde på liggende skærme
+  helt: true,
+  alt: 'Mathias Jensen med vinderbuket i Aalborg',
+  pos: '68% 35%',
+  posBred: '50% 50%',
 })}
 
 <section class="sek">
@@ -890,40 +816,28 @@ ${sidehoved({
       <h2 class="oje">Telefon</h2>
       <p class="kontakt__stor"><a href="tel:${tlfLink}">${SITE.telefon}</a></p>
       <p class="valg"><a class="knap" href="tel:${tlfLink}">Ring op ${pil}</a> <a class="laes" href="sms:${tlfLink}">Send en sms ${pil}</a></p>
-    </div>
+    </div>${SITE.email ? `
     <div class="kontakt__felt" data-vis style="--i:1">
       <h2 class="oje">E-mail</h2>
       <p class="kontakt__stor kontakt__stor--mail"><a href="mailto:${SITE.email}">${SITE.email}</a></p>
       <p class="valg"><a class="knap knap--kant" href="mailto:${SITE.email}?subject=${encodeURIComponent('Henvendelse fra hjemmesiden')}">Skriv en mail ${pil}</a></p>
-    </div>
+    </div>` : ''}
     <div class="kontakt__felt kontakt__felt--kort" data-vis style="--i:2">
       <div>
         <h2 class="oje">Stalden</h2>
         <address>${SITE.navn}<br>${SITE.gade}<br>${SITE.postnr} ${SITE.by}</address>
         <p class="valg">${ekstern(SITE.kort, 'Find vej')}</p>
       </div>
-      <div class="kort kort--mini">${danmarkskort([{ kode: 'Sk', navn: 'Skive' }], 'Danmarkskort, hvor Skive er markeret')}</div>
+      <div class="kort kort--mini">${danmarkskort([{ kode: HJEMME, navn: 'Aalborg' }, { kode: 'stald', navn: SITE.by }], `Danmarkskort, hvor stalden i ${SITE.by} og hjemmebanen i Aalborg er markeret`)}</div>
     </div>
     <div class="kontakt__felt" data-vis style="--i:3">
-      <h2 class="oje">Følg stalden</h2>
+      <h2 class="oje">Følg Mathias</h2>
       <ul class="folg">
         ${[
-          [SITE.facebook, 'Facebook', SITE.navn, '<path d="M13.6 21v-7.7h2.6l.4-3h-3V8.4c0-.9.3-1.5 1.5-1.5h1.6V4.2c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.9v3h2.6V21z" fill="currentColor"/>'],
-          [SITE.instagram, 'Instagram', '@stald_magnusmnielsen', '<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/>'],
           [SITE.travinfo, 'Travinfo', 'Resultater og statistik', '<circle cx="12" cy="13.5" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 13.5V9.5M10 3h4M18.5 6.5l1.3-1.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'],
         ].map(([href, kanal, navn, ikon]) => `
         <li><a href="${href}" target="_blank" rel="noopener"><span class="folg__ikon"><svg viewBox="0 0 24 24" aria-hidden="true">${ikon}</svg></span><span class="folg__tekst"><span>${kanal}</span><b>${esc(navn)}</b></span><span class="folg__pil">${ud}</span>${nyFane}</a></li>`).join('')}
       </ul>
-    </div>
-  </div>
-</section>
-
-<section class="sek sek--tone sek--smal">
-  <div class="wrap partnere">
-    <h2 class="oje" data-vis>Hjemmebane og samarbejdspartner</h2>
-    <div class="partnere__gitter">
-      ${partnerSkive('Flyvej 2, 7800 Skive')}
-      ${partnerKrafft(1)}
     </div>
   </div>
 </section>`;
@@ -951,34 +865,29 @@ export function sider(data, { v, idag, kort }) {
   };
   return [
     side('', () => ({
-      titel: `${SITE.navn} – professionel travtræner i Skive`,
-      beskrivelse: `Magnus M. Nielsen er professionel travtræner og kusk med Skive Trav som hjemmebane. Tilkøring af ungheste og træning af løbsheste – ${o.heste.length} heste i træning.`,
+      titel: `${SITE.navn} – travkusk og træner i Aalborg`,
+      beskrivelse: `Mathias Jensen er professionel travkusk og træner med A1-licens og Spar Nord Arena Aalborg som hjemmebane. ${o.kuskSaeson.starter} starter og ${o.kuskSaeson.sejre} sejre som kusk i ${o.kuskSaeson.aar}.`,
       klasse: 'forside',
-      indhold: forside(o),
+      indhold: forside(o, data),
     })),
-    side('om-magnus/', () => ({
-      titel: `Om Magnus M. Nielsen – travtræner og kusk | ${SITE.navn}`,
-      beskrivelse: 'Mød Magnus M. Nielsen: født 2001, dansk mester for jockeyer i 2021, nomineret til Årets Komet – og i dag professionel travtræner med egen stald i Skive.',
-      indhold: omMagnus(o, data),
-    })),
-    side('stalden/', () => ({
-      titel: `Stalden – travtræning og tilkøring i Skive | ${SITE.navn}`,
-      beskrivelse: `${SITE.navn} holder til på Flyvej i Skive med Skive Trav som hjemmebane. Træning af løbsheste, tilkøring af ungheste og sparring ved hestekøb.`,
-      indhold: stalden(o),
+    side('om-mathias/', () => ({
+      titel: `Om Mathias Jensen – travkusk og træner | ${SITE.navn}`,
+      beskrivelse: `Mød Mathias Jensen: dansk mester for amatørkuske 2023, Årets Komet 2021 – og fra 2026 professionel kusk og træner med A-licens og egen stald i ${SITE.by}.`,
+      indhold: omMathias(o, data),
     })),
     side('heste/', () => ({
       titel: `Heste i træning | ${SITE.navn}`,
-      beskrivelse: `Se de ${o.heste.length} travheste, der lige nu er i træning hos Magnus M. Nielsen i Skive – med afstamning, starter, præmiesum og rekord.`,
+      beskrivelse: `Se de travheste, der lige nu er i træning hos Mathias Jensen i ${SITE.by} – med afstamning, starter, præmiesum og rekord.`,
       indhold: heste(o),
     })),
     side('resultater/', () => ({
       titel: `Resultater og statistik | ${SITE.navn}`,
-      beskrivelse: `Seneste resultater, kommende starter og sæsonstatistik for travtræner Magnus M. Nielsen: ${o.saeson.sejre} sejre på ${o.saeson.starter} starter i ${o.saeson.aar}.`,
+      beskrivelse: `Seneste løb, næste kørsler og sæsonstatistik for travkusk og træner Mathias Jensen: ${o.kuskSaeson.sejre} sejre på ${o.kuskSaeson.starter} starter som kusk i ${o.kuskSaeson.aar}.`,
       indhold: resultater(o, data),
     })),
     side('kontakt/', () => ({
-      titel: 'Kontakt Magnus M. Nielsen – travtræner i Skive',
-      beskrivelse: `Kontakt ${SITE.navn}: telefon ${SITE.telefon}, ${SITE.email}. Stalden ligger på ${SITE.gade}, ${SITE.postnr} ${SITE.by}.`,
+      titel: `Kontakt Mathias Jensen – travkusk og træner`,
+      beskrivelse: `Kontakt Mathias Jensen: telefon ${SITE.telefon}${SITE.email ? `, ${SITE.email}` : ''}. Stalden ligger på ${SITE.gade}, ${SITE.postnr} ${SITE.by}.`,
       indhold: kontakt(),
     })),
     side('404.html', () => ({

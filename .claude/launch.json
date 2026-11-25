@@ -2,10 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "stald",
+      "name": "mathias",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["build.mjs", "--serve"],
-      "port": 4173
+      "runtimeArgs": [
+        "build.mjs",
+        "--serve",
+        "--port=4174"
+      ],
+      "port": 4174
     }
   ]
 }

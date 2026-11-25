@@ -1,0 +1,6 @@
+# Lokale filer, der aldrig må med op
+assets/udkast/
+originaler/
+dist/
+node_modules/
+.env*
