@@ -23,7 +23,7 @@ Ved hver bygning skriver `build.mjs`, hvad der mangler før lancering (fx e-mail
 
 Heste, resultater, kommende starter og statistik kommer fra Dansk Hestevæddeløbs sportsdata – de samme data, som travinfo.dk viser. `--hent` gemmer dem i `data/travinfo.json`, og siderne bygges ud fra den fil. Både løb som træner og som kusk hentes, fordi Mathias kører langt flest løb for andre trænere.
 
-`.github/workflows/opdater.yml` kører `--hent` hver morgen og ved hvert push til `main` og udgiver på GitHub Pages: https://mikkelgamer1.github.io/stald-mathias-jensen/. Her holder `robots.txt` sitet ude af søgemaskinerne. Når domænet er på plads, sættes repo-variablen `SITE_URL` til den rigtige adresse – så åbnes der for søgemaskinerne af sig selv.
+`.github/workflows/opdater.yml` kører `--hent` hver morgen og ved hvert push til `main` og udgiver på GitHub Pages: https://mikkelgamer1.github.io/stald-mathias-jensen/. Vercel (projektet `stald-mathias-jensen`) bygger fra samme repo ved hvert push. Begge steder holder `robots.txt` sitet ude af søgemaskinerne. Når domænet er på plads, sættes repo-variablen `SITE_URL` til den rigtige adresse – så åbnes der for søgemaskinerne af sig selv.
 
 ## Ret indhold
 
@@ -38,8 +38,10 @@ Heste, resultater, kommende starter og statistik kommer fra Dansk Hestevæddelø
 
 Kun rigtige, uredigerede fotos – ingen AI. Mathias' Facebook bruges ikke.
 
-- **Endelige fotos** lægges i `originaler/` (kun lokalt) og skaleres ned til `assets/img/` (`navn-bredde.jpg`, den største er originalfilen uændret). De skrives ind i `BILLEDER` i `templates.mjs`.
-- **Udkast:** `assets/udkast/` indeholder fotos fra banernes og travmediernes sider (Ole Hindby, Burt Seeger, Hesselborg Foto). De bruges kun lokalt til at se layoutet. Mappen står i `.gitignore` og `.vercelignore`, så online vises pladsholdere, indtil fotograferne har givet lov, og originalerne er lagt ind. Fotografens navn skal stå ved billedet.
+- Fotos fra banernes og travmediernes sider (Ole Hindby, Burt Seeger, Hesselborg Foto), brugt med fotografernes tilladelse. Fotografens navn står ved hvert billede ("Foto: …"), styret af `FOTOGRAF` i `templates.mjs`.
+- Filerne ligger i `originaler/` (kun lokalt) og er skaleret ned til `assets/img/` (`navn-bredde.jpg`); den største bredde er filen uændret. De står i `BILLEDER`, og `FELT` bestemmer, hvilket foto der vises hvor.
+- Ved skarpere originaler fra fotograferne: læg dem i `originaler/` med samme navn, skaler igen og ret bredderne i `BILLEDER`.
+- Felter uden foto viser en pladsholder med en beskrivelse af det ønskede foto (`OENSKER`).
 
 ## Kilder til fakta
 
