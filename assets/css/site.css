@@ -692,3 +692,8 @@ p.hest__tal--tom { display: block; font-size: .9rem; }
 
 /* Svagere fade i sidehovederne: en blød skygge holder den lille tekst læselig på lyse dele af fotoet. */
 .sidehoved .indled, .sidehoved .sti { text-shadow: 0 1px 2px rgba(11, 20, 16, .55), 0 2px 14px rgba(11, 20, 16, .6); }
+
+/* Fotografens navn ved billedet ("Foto: …"). */
+.fotokredit { position: absolute; right: var(--kant); bottom: 12px; z-index: 2; margin: 0; font: 500 .68rem/1 var(--sans); letter-spacing: .04em; color: rgba(255, 255, 255, .75); text-shadow: 0 1px 6px rgba(11, 20, 16, .7); pointer-events: none; }
+.resbane__billede .fotokredit { top: 14px; bottom: auto; }
+.fotokredit--under { position: static; margin: -18px 0 22px; color: var(--staal); text-shadow: none; }

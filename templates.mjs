@@ -1,5 +1,4 @@
 // Al HTML til sitet. Tekster rettes her; tal, heste og resultater kommer fra data/travinfo.json.
-import { existsSync } from 'node:fs';
 
 export const SITE = {
   // ← Domænet er ikke valgt endnu; indtil da GitHub Pages (kan også sættes med miljøvariablen SITE_URL). På Vercel bruges projektets adresse.
@@ -19,7 +18,7 @@ export const SITE = {
   kort: 'https://www.google.com/maps/search/?api=1&query=Rold+Bavneh%C3%B8jvej+2%2C+9510+Arden',
 };
 // Felter, der mangler, før siden kan gå live – build.mjs skriver dem ud ved hver bygning.
-export const MANGLER = [!SITE.email && 'e-mail', !SITE.cvr && 'CVR og firmanavn', 'fotos', 'domæne'].filter(Boolean);
+export const MANGLER = [!SITE.email && 'e-mail', !SITE.cvr && 'CVR og firmanavn', 'domæne'].filter(Boolean);
 
 // Billeder af enkelte heste (hest-id fra Travinfo → [filnavn i assets/img, evt. fokuspunkt]).
 // Forlader hesten træningslisten, forsvinder kortet af sig selv.
@@ -30,11 +29,26 @@ const UDELAD = new Set([
   643041, // Fit For Fight er død (Mathias til travservice.dk 24.11.2026)
 ]);
 
-// Kun rigtige, uredigerede fotos – ingen AI. Mathias' Facebook bruges ikke; fotos skal komme fra Mathias selv.
-// Originalerne lægges i originaler/ (kun lokalt). Den største bredde er originalfilen uændret;
+// Kun rigtige, uredigerede fotos – ingen AI. Mathias' Facebook bruges ikke.
+// Fotos fra banernes og travmediernes sider, brugt med fotografernes tilladelse (Mathias via Mikkel, 25.11.2026).
+// Originalerne ligger i originaler/ (kun lokalt). Den største bredde er filen uændret, som fotografen har lagt den ud;
 // de mindre er kun skaleret ned. Udsnittet på siden vælges med CSS (object-position), ikke i filen.
 // navn: [forhold bredde/højde, ...bredder]
-const BILLEDER = {};
+const BILLEDER = {
+  'karlo': [1.432, 800, 1200, 1600, 2400, 3309], // Mathias bag Karlo, Jydsk Væddeløbsbane 24/7-2026 (jvb-aarhus.dk)
+  'lulu': [1.509, 800, 1200, 1600, 2400, 3829],  // Mathias bag Lulu, Jydsk Væddeløbsbane 12/7-2025 (jvb-aarhus.dk)
+  'pokaler': [1.515, 600, 800],                  // Mathias med pokalerne, Amatør Grand Prix, Charlottenlund 2022 (travet.dk)
+  'smil': [1.501, 600, 800],                     // Mathias med vinderbuket, Aalborg 2021 (travet.dk)
+  'buket': [1.501, 600, 800],                    // Mathias med vinderbuket, Aalborg 2021 (travet.dk)
+  'nr9': [1.501, 600, 800],                      // Mathias i løb, Aalborg december 2023 (travet.dk)
+  'liga': [1.501, 600, 800],                     // Mathias bag Liga, Aalborg 9/10-2026 (travet.dk)
+};
+// Fotograf pr. foto – navnet står ved billedet på siden.
+const FOTOGRAF = { karlo: 'Ole Hindby', lulu: 'Ole Hindby', pokaler: 'Burt Seeger', smil: 'Hesselborg Foto', buket: 'Hesselborg Foto', nr9: 'Hesselborg Foto', liga: 'Hesselborg Foto' };
+// Hvilket foto der vises i hvilket felt (felt → foto)
+const FELT = { hero: 'karlo', mathias: 'pokaler', portraet: 'smil', loeb: 'liga', resultater: 'lulu', heste: 'karlo', baand: 'lulu', kontakt: 'buket', stald: 'nr9' };
+const foto = (navn) => FELT[navn] ?? navn;
+const fotokredit = (navn) => (FOTOGRAF[foto(navn)] ? `Foto: ${FOTOGRAF[foto(navn)]}` : '');
 // Fotos, siden mangler: navn → [forhold, hvad fotoet skal vise]. Indtil fotoet er lagt ind i BILLEDER,
 // vises en pladsholder med teksten – listen kan sendes direkte til Mathias.
 const OENSKER = {
@@ -48,24 +62,6 @@ const OENSKER = {
   'kontakt': [0.75, 'Stemningsbillede fra stalden eller banen'],
   'baand': [1.5, 'En hest i træning eller på folden (liggende)'],
 };
-// Udkast: fotos af Mathias fundet via Google på banernes og travmediernes egne sider – hentet uredigeret, som de ligger der.
-// Ophavsretten ligger hos fotograferne. Mappen assets/udkast/ står i .gitignore og .vercelignore, så filerne kommer
-// aldrig på nettet (der vises pladsholdere i stedet), før fotografen har givet lov og fotoet er lagt ind i BILLEDER.
-const UDKAST_FOTOS = {
-  karlo: ['karlo-ole-hindby.jpg', 'Ole Hindby', 3309, 2311, 'Karlo, Jydsk Væddeløbsbane 24/7-2026 (jvb-aarhus.dk)'],
-  lulu: ['lulu-ole-hindby.jpg', 'Ole Hindby', 3829, 2538, 'Lulu, Jydsk Væddeløbsbane 12/7-2025 (jvb-aarhus.dk)'],
-  pokaler: ['pokaler-burt-seeger.jpg', 'Burt Seeger', 800, 528, 'Amatør Grand Prix, Charlottenlund 2022 (travet.dk)'],
-  kasino: ['kasino-travet.jpg', 'Ole Hindby eller KM Foto', 800, 532, 'Kasino, Odense 4/7-2025 (travet.dk) – kusk er Frederik Kragh Olsen, så den bruges ikke'],
-  smil: ['smil-2021-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Mathias med vinderbuket, Aalborg 2021 (travet.dk)'],
-  buket: ['buket-2021-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Mathias med vinderbuket, Aalborg 2021 (travet.dk)'],
-  nr9: ['nr9-2023-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Mathias i løb, Aalborg december 2023 (travet.dk)'],
-  liga: ['liga-2026-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Liga, Aalborg 9/10-2026 (travet.dk)'],
-  fitforfight: ['fitforfight-2024-hesselborg.jpg', 'Hesselborg Foto', 800, 533, 'Fit For Fight, Aalborg 2/7-2024 (travet.dk) – bruges ikke, hesten er død'],
-  kasinoSigter: ['kasino-sigter-ole-hindby.jpg', 'Ole Hindby', 800, 532, 'Kasino efter sejren i Sigter mod stjernerne, Aarhus 28/6-2025 (travet.dk) – kusk er Frederik Kragh Olsen, så den bruges ikke'],
-};
-// Hvilket foto der vises hvor (felt → foto)
-const UDKAST_FELT = { hero: 'karlo', mathias: 'pokaler', portraet: 'smil', loeb: 'liga', resultater: 'lulu', heste: 'karlo', baand: 'lulu', kontakt: 'buket', stald: 'nr9' };
-const UDKAST = Object.fromEntries(Object.entries(UDKAST_FELT).map(([felt, foto]) => [felt, UDKAST_FOTOS[foto]]).filter(([, u]) => existsSync(new URL(`./assets/udkast/${u[0]}`, import.meta.url))));
 // Fokuspunkt for fotos, hvor motivet ikke står i midten (bruges, når feltet har en anden form end fotoet).
 const FOKUS = {};
 
@@ -112,21 +108,21 @@ const ekstern = (href, tekst, cls = 'laes') => `<a class="${cls}" href="${href}"
 const knap = (href, tekst, cls = '') => `<a class="knap ${cls}" href="${R}${href}">${tekst} ${pil}</a>`;
 const laes = (href, tekst) => `<a class="laes" href="${R}${href}">${tekst} ${pil}</a>`;
 
-const forhold = (navn) => BILLEDER[navn]?.[0] ?? (UDKAST[navn] ? UDKAST[navn][2] / UDKAST[navn][3] : OENSKER[navn]?.[0] ?? 1.5);
-const billedsti = (navn, w) => `${R}assets/img/${navn}-${w}.jpg`;
-const srcset = (navn) => (BILLEDER[navn] ?? [1]).slice(1).map((w) => `${billedsti(navn, w)} ${w}w`).join(', ');
+const forhold = (navn) => BILLEDER[foto(navn)]?.[0] ?? OENSKER[navn]?.[0] ?? 1.5;
+const billedsti = (fil, w) => `${R}assets/img/${fil}-${w}.jpg`;
+const srcset = (navn) => (BILLEDER[foto(navn)] ?? [1]).slice(1).map((w) => `${billedsti(foto(navn), w)} ${w}w`).join(', ');
 const img = (navn, alt, { sizes = '100vw', lazy = true, pos = FOKUS[navn] } = {}) => {
-  if (!BILLEDER[navn] && UDKAST[navn]) { // lokalt udkast-foto (kun på egen maskine)
-    return `<img src="${R}assets/udkast/${UDKAST[navn][0]}" width="${UDKAST[navn][2]}" height="${UDKAST[navn][3]}" alt="${esc(alt)}"${pos ? ` style="object-position:${pos}"` : ''}${lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"'}>`;
-  }
-  if (!BILLEDER[navn]) { // fotoet er ikke kommet endnu: pladsholder med en beskrivelse af det ønskede foto
+  const fil = foto(navn);
+  if (!BILLEDER[fil]) { // fotoet er ikke kommet endnu: pladsholder med en beskrivelse af det ønskede foto
     const [forhold, oenske] = OENSKER[navn] ?? [1, alt];
     return `<span class="mangler" style="--r:${forhold}" role="img" aria-label="Pladsholder: ${esc(oenske)}"><span class="mangler__tekst" aria-hidden="true"><b>Foto følger</b>${esc(oenske)}</span></span>`;
   }
-  const [forhold, ...bredder] = BILLEDER[navn];
+  const [forhold, ...bredder] = BILLEDER[fil];
   const max = bredder.at(-1);
-  return `<img src="${billedsti(navn, bredder[Math.min(1, bredder.length - 1)])}" srcset="${srcset(navn)}" sizes="${sizes}" width="${max}" height="${Math.round(max / forhold)}" alt="${esc(alt)}"${pos ? ` style="object-position:${pos}"` : ''}${lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"'}>`;
+  return `<img src="${billedsti(fil, bredder[Math.min(1, bredder.length - 1)])}" srcset="${srcset(navn)}" sizes="${sizes}" width="${max}" height="${Math.round(max / forhold)}" alt="${esc(alt)}"${pos ? ` style="object-position:${pos}"` : ''}${lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"'}>`;
 };
+// Lille "Foto: …" oven på et billede (fotografens navn skal stå ved billedet).
+const fotokreditP = (navn, cls = 'fotokredit') => (fotokredit(navn) ? `<p class="${cls}">${esc(fotokredit(navn))}</p>` : '');
 const figur = (navn, alt, tekst, opt) => `<figure class="figur"><div class="billede" data-vis="billede">${img(navn, alt, opt)}</div>${tekst ? `<figcaption>${tekst}</figcaption>` : ''}</figure>`;
 
 // ---------- afledte tal ----------
@@ -331,7 +327,7 @@ ${bund(o)}
 // På smalle og stående skærme ligger det høje billede altid bag teksten.
 // `helt`: på liggende skærme får sidehovedet samme format som det brede billede, så fotoet ses i fuld størrelse.
 // Et tal under 1 (fx .9) er den del af fotoets højde, der vises – resten skæres af i bunden med posBred '50% 0%'.
-const sidehoved = ({ oje, h1, tekst, billede, bred, alt, pos = '50% 30%', posBred = '50% 30%', kredit = '', helt = false }) => `
+const sidehoved = ({ oje, h1, tekst, billede, bred, alt, pos = '50% 30%', posBred = '50% 30%', kredit = fotokredit(bred ?? billede), helt = false }) => `
 <section class="sidehoved${bred ? ' sidehoved--fuld' : ''}${bred && helt ? ' sidehoved--helt' : ''}"${bred && helt ? ` style="--ratio:${(forhold(bred) / (helt === true ? 1 : helt)).toFixed(3)}"` : ''}>
   <picture class="sidehoved__billede" style="--pos:${pos};--pos-bred:${posBred}">${bred ? `
     <source media="(max-aspect-ratio: 1/1)" srcset="${srcset(billede)}" sizes="100vw">` : ''}
@@ -443,6 +439,7 @@ const ejerbaand = () => `
   <picture class="baand__billede">
     ${img('baand', 'Mathias Jensen bag Lulu på Jydsk Væddeløbsbane')}
   </picture>
+  ${fotokreditP('baand')}
   <div class="wrap baand__tekst">
     <p class="oje" data-vis>For trænere og hesteejere</p>
     <h2 data-vis style="--i:1">Mangler din hest <em>en kusk?</em></h2>
@@ -482,14 +479,14 @@ const forside = (o, data) => `
       <div><dt>Indkørt som kusk i ${o.kuskSaeson.aar}</dt><dd>${nf(o.kuskSaeson.praemier)}<small>&nbsp;kr.</small></dd></div>
       <div><dt>Heste i træning</dt><dd>${o.heste.length}</dd></div>
     </dl>
-    <p class="wrap hero__kilde">Tal fra Dansk Hestevæddeløb · opdateret ${o.opdateret}</p>
+    <p class="wrap hero__kilde">Tal fra Dansk Hestevæddeløb · opdateret ${o.opdateret}${fotokredit('hero') ? ` · ${fotokredit('hero')}` : ''}</p>
   </div>
 </section>
 
 <section class="sek sek--taet-bund">
   <div class="wrap duo">
     <div class="duo__billede">
-      ${figur('mathias', 'Mathias Jensen', '', { sizes: '(min-width: 900px) 38vw, 92vw' })}
+      ${figur('mathias', 'Mathias Jensen med pokalerne efter Amatør Grand Prix på Charlottenlund', fotokredit('mathias'), { sizes: '(min-width: 900px) 38vw, 92vw' })}
     </div>
     <div class="duo__tekst">
       <p class="oje" data-vis>Om Mathias</p>
@@ -530,7 +527,7 @@ const forside = (o, data) => `
 </section>
 
 <section class="sek--mork resbane">
-  <div class="resbane__billede">${img('loeb', 'Mathias Jensen bag Liga på Spar Nord Arena Aalborg', { pos: '50% 55%' })}</div>
+  <div class="resbane__billede">${img('loeb', 'Mathias Jensen bag Liga på Spar Nord Arena Aalborg', { pos: '50% 55%' })}${fotokreditP('loeb')}</div>
   <div class="wrap duo duo--top">
     <div class="duo__tekst">
       <p class="oje" data-vis>Resultater</p>
@@ -578,6 +575,7 @@ ${sidehoved({
   <div class="wrap artikel">
     <aside class="fakta">
       <div class="fakta__foto billede" data-vis="billede">${img('stald', 'Mathias Jensen i løb i Aalborg', { sizes: '(min-width: 961px) 30vw, 92vw' })}</div>
+      ${fotokreditP('stald', 'fotokredit fotokredit--under')}
       <h2 class="oje">Kort fortalt</h2>
       <dl>
         <div><dt>Født</dt><dd>${data.traener.foedt}</dd></div>
