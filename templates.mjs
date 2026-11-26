@@ -527,7 +527,7 @@ const forside = (o, data) => `
 </section>
 
 <section class="sek--mork resbane">
-  <div class="resbane__billede">${img('loeb', 'Mathias Jensen bag Liga på Spar Nord Arena Aalborg', { pos: '50% 55%' })}${fotokreditP('loeb')}</div>
+  <div class="resbane__billede">${img('loeb', 'Mathias Jensen bag Liga på Spar Nord Arena Aalborg', { pos: '50% 0%' })}${fotokreditP('loeb')}</div>
   <div class="wrap duo duo--top">
     <div class="duo__tekst">
       <p class="oje" data-vis>Resultater</p>
