@@ -6,7 +6,7 @@
 
 :root {
   --ink: #0b1410;        /* løbsdragtens sort, med et strejf af grønt */
-  --navy: #10251a;       /* mørk skovgrøn til kontaktbåndet */
+  --navy: #1a3427;       /* skovgrøn til kontaktbåndet (lysnet 26.11.2026) */
   --mork: #16251d;       /* en tand lysere end --ink: mørke afsnit og bunden */
   --blaa: #17703f;       /* løbsdragtens grønne */
   --blaa-lys: #8fd4a6;   /* grøn på mørk bund */
@@ -494,7 +494,7 @@ p.hest__tal--tom { display: block; font-size: .9rem; }
 
 /* ---------- bund ---------- */
 
-.bund { padding-top: clamp(64px, 8vw, 112px); font-size: .95rem; color: rgba(255, 255, 255, .72); background: var(--mork); }
+.bund { padding-top: clamp(64px, 8vw, 112px); font-size: .95rem; color: rgba(255, 255, 255, .72); background: #1e2e25; } /* bunden: en tand lysere end de mørke afsnit */
 .bund__gitter { display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr; gap: clamp(28px, 4vw, 72px); padding-bottom: clamp(48px, 6vw, 88px); }
 .bund__logo { width: 150px; margin-bottom: 24px; }
 .bund__partner { display: inline-flex; align-items: center; gap: 18px; margin-top: 28px; padding: 14px 0; }
