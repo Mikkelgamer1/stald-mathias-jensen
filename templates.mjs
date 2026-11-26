@@ -565,10 +565,10 @@ ${sidehoved({
   tekst: `Professionel travkusk og træner med A1-licens. Født i ${data.traener.foedt} – og med ${esc(data.traener.hjemmebane)} som hjemmebane.`,
   billede: 'portraet',
   bred: 'portraet', // fotoet i fuld bredde på liggende skærme
-  helt: .82, // de øverste 18 % (slørede træer) skæres fra, så Mathias kommer tættere på toppen
+  helt: .72, // viser 72 % af fotoets højde: 18 % skæres af i toppen (slørede træer) og 10 % i bunden
   alt: 'Mathias Jensen med vinderbuket i Aalborg',
   pos: '68% 35%',
-  posBred: '50% 100%',
+  posBred: '50% 64%', // 18 / (18 + 10) = 64 %: mest skåret i toppen
 })}
 
 <section class="sek">
