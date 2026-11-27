@@ -725,3 +725,8 @@ p.hest__tal--tom { display: block; font-size: .9rem; }
 
 /* Brede skærme (fx fuld HD): fotoet skæres mest i højden, så vis den nederste del – Mathias og hele hesten – i stedet for publikum. */
 @media (min-aspect-ratio: 8/5) { .hero__billede img { object-position: 50% 66%; } }
+
+/* Menuen i toppen sidder lidt højere, når man er øverst på siden (tilbage i midten, når toppen er skrumpet). */
+.top__inner { padding-bottom: 20px; transition: height .4s var(--ease), padding .4s var(--ease); }
+.er-scrollet .top__inner { padding-bottom: 0; }
+@media (max-width: 960px) { .top__inner { padding-bottom: 10px; } .er-scrollet .top__inner { padding-bottom: 0; } }
