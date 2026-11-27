@@ -733,3 +733,6 @@ p.hest__tal--tom { display: block; font-size: .9rem; }
 
 /* Navnet på forsiden en tand mindre (ca. 12 %). */
 .hero__navn { font-size: clamp(2.65rem, 4.65vw, 4.2rem); }
+
+/* Forsiden: "Mathias" i den lysegrønne farve fra logoet. */
+.hero__fornavn { color: var(--blaa-lys); }

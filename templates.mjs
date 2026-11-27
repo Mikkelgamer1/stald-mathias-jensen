@@ -467,8 +467,8 @@ const forside = (o, data) => `
     ${img('hero', 'Mathias Jensen i grøn dragt bag Karlo på Jydsk Væddeløbsbane', { lazy: false })}
   </picture>
   <div class="wrap hero__tekst">
-    <p class="oje" style="--i:0">Travkusk og træner · Aalborg</p>
-    <h1><span class="hero__navn" style="--i:1">Mathias <em>Jensen</em></span> <span class="hero__titel" style="--i:2">Professionel travkusk og træner</span></h1>
+    <p class="oje" style="--i:0">Travkusk og træner</p>
+    <h1><span class="hero__navn" style="--i:1"><span class="hero__fornavn">Mathias</span> <em>Jensen</em></span> <span class="hero__titel" style="--i:2">Professionel travkusk og træner</span></h1>
     <p class="hero__indled" style="--i:3">A1-licens som både kusk og træner. I ${o.kuskSaeson.aar} har Mathias kørt ${o.kuskSaeson.starter} løb og vundet ${o.kuskSaeson.sejre} – med Spar Nord Arena Aalborg som hjemmebane.</p>
     <p class="hero__valg" style="--i:4">${knap('kontakt/', 'Kontakt Mathias', 'knap--lys')} ${laes('resultater/', 'Se resultater')}</p>
   </div>
